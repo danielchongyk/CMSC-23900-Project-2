@@ -1,6 +1,7 @@
 import React from 'react';
 import {csv} from 'd3-fetch';
 import ExampleChart from './example-chart';
+import DistSimulator from './dist-simulator';
 
 const longBlock = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -14,6 +15,7 @@ class RootComponent extends React.Component {
   constructor() {
     super();
     this.state = {
+      distSimDist: null,
       data: null,
       loading: true
     };
@@ -23,6 +25,7 @@ class RootComponent extends React.Component {
     csv('data/sample-data.csv')
       .then(data => {
         this.setState({
+          distSimDist: 'normal',
           data,
           loading: false
         });
@@ -30,7 +33,7 @@ class RootComponent extends React.Component {
   }
 
   render() {
-    const {loading, data} = this.state;
+    const {distSimDist, loading, data} = this.state;
     if (loading) {
       return <h1>LOADING</h1>;
     }
@@ -42,6 +45,15 @@ class RootComponent extends React.Component {
         <div>{longBlock}</div>
         <ExampleChart data={data}/>
         <div>{longBlock}</div>
+        <div className="relative">
+        <h1> Hello Explainable!</h1>
+          <div className="flex">
+            <div className="max-width-1000">{longBlock}</div>
+            <DistSimulator
+              dist={distSimDist}
+            />
+          </div>
+        </div>
       </div>
     );
   }
