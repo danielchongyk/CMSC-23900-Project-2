@@ -2,6 +2,7 @@ import React from 'react';
 import {csv} from 'd3-fetch';
 import ExampleChart from './example-chart';
 import DistSimulator from './dist-simulator';
+import CtsDist from './cts-dist.js';
 
 const longBlock = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -54,9 +55,10 @@ class RootComponent extends React.Component {
                    is specifically a probability function on two events: one "success" and one "failure". Of course,
                    mathematicians over the years have come up with loads of different probability distributions. Try
                    plotting out a few of them to the right (you can even change the parameters for these functions!)`}</div>
-            <DistSimulator
-              dist={distSimDist}
-              onChange={x => this.setState({dist: x})}
+            <CtsDist
+              height={500}
+              width={500}
+              margin={{left: 100, right: 100, top: 100, right: 100}}
             />
           </div>
         </div>

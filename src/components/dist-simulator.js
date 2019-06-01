@@ -19,52 +19,34 @@ import Axis from './axis.js';
 export default class DistSimulator extends Component {
   constructor(props) {
     super(props);
-    const {
-      dist,
-      onChange
-    } = this.props;
-
+    
     // Graphical parameters.
     const height = 400;
     const width = 600;
     const margin = {left: 100, right: 20, bottom: 100, top: 20};
 
-    // Define standard distrbutions
-    const normal = {
-      df: jStat.normal,
-      parameters: {
-        mean: {name: "Mean", value: 0, range: [-3, 3]},
-        std: {name: "Standard Deviation", value: 1, range: [0.01, 10]}
-      },
-      domain: [-3, 3]
-    };
-
     this.state = {
       height,
       width,
-      margin,
-      normal
+      margin
     };
   }
 
   state = {
     height: null,
     width: null,
-    margin: null,
-    normal: {}
+    margin: null
   }
 
   render() {
     const {
-      dist,
-      onChange
+      distFunc
     } = this.props;
     const {
       height,
       width,
       margin
     } = this.state;
-    const distFunc = this.state[dist];
     
     // Sample from the function.
     const numSample = 1000;
@@ -85,7 +67,7 @@ export default class DistSimulator extends Component {
       .domain(distFunc.domain)
       .range([margin.left, width - margin.right]);
     const yScale = scaleLinear()
-      .domain([0, 0.5])
+      .domain([0, distFunc.max])
       .range([height - margin.bottom, margin.top]);
     const lineEval = line().x(d => xScale(d.x)).y(d => yScale(d.y));
 
@@ -114,21 +96,6 @@ export default class DistSimulator extends Component {
               transform={{x: margin.left, y: 0}}
             />
         </svg>
-        <div className="relative">
-          {Object.keys(distFunc.parameters).map(d => {
-              return (<Slider
-                key={d}
-                value={distFunc.parameters[d].value}
-                range={distFunc.parameters[d].range}
-                stepSize={0.01}
-                onChange={x => {
-                  distFunc.parameters[d].value = x;
-                  this.setState({normal: distFunc});
-                }}
-                sliderName={distFunc.parameters[d].name}
-              />);
-            })}
-        </div>
       </div>
     );
   }
