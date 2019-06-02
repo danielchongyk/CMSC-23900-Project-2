@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {axisLeft, axisBottom} from 'd3-axis';
+import {axisLeft, axisBottom, axisRight} from 'd3-axis';
 import {select} from 'd3-selection';
 
 export default class Axis extends Component {
@@ -17,8 +17,11 @@ export default class Axis extends Component {
       scale,
       transform
     } = this.props;
-    const axis = (which === 'x' ? axisBottom : axisLeft)(scale)
-      .tickFormat("");
+    const axis = (which === 'x' ? axisBottom : which === 'y' ? axisLeft : axisRight)(scale);
+    
+    if (which !== 'unif'){
+      axis.tickFormat("");
+    }
     select(this.axisG).call(axis);
   }
 

@@ -1,10 +1,7 @@
 import React, {Component} from 'react';
-import ReactDOM from 'react-dom';
 import {line} from 'd3-shape';
 import {scaleLinear} from 'd3-scale';
 import {select} from 'd3-selection';
-import * as jStat from 'jStat';
-import Slider from './slider.js';
 import Axis from './axis.js';
 
 /*
@@ -17,36 +14,23 @@ import Axis from './axis.js';
  *  - Normal
  */
 export default class DistSimulator extends Component {
-  constructor(props) {
-    super(props);
-    
-    // Graphical parameters.
-    const height = 400;
-    const width = 600;
-    const margin = {left: 100, right: 20, bottom: 100, top: 20};
-
+  constructor() {
+    super();
     this.state = {
-      height,
-      width,
-      margin
     };
   }
 
   state = {
-    height: null,
-    width: null,
-    margin: null
   }
 
   render() {
     const {
-      distFunc
-    } = this.props;
-    const {
       height,
       width,
-      margin
-    } = this.state;
+      margin,
+      distFunc,
+      which
+    } = this.props;
     
     // Sample from the function.
     const numSample = 1000;
@@ -54,7 +38,7 @@ export default class DistSimulator extends Component {
       return scaleLinear().domain([0, 1]).range(distFunc.domain)(i / (numSample - 1));
     });
     const yData = xData.map(d => {
-      return distFunc.df.pdf(d, ...Object.values(distFunc.parameters).map(d => d.value));
+      return distFunc.df[which](d, ...Object.values(distFunc.parameters).map(d => d.value));
     });
 
     const data = xData.reduce((acc, cur, idx) => {
@@ -67,7 +51,7 @@ export default class DistSimulator extends Component {
       .domain(distFunc.domain)
       .range([margin.left, width - margin.right]);
     const yScale = scaleLinear()
-      .domain([0, distFunc.max])
+      .domain([0, which === "cdf" ? 1 : distFunc.max])
       .range([height - margin.bottom, margin.top]);
     const lineEval = line().x(d => xScale(d.x)).y(d => yScale(d.y));
 
@@ -76,6 +60,7 @@ export default class DistSimulator extends Component {
         <svg width={width} height={height}>
           <g className="plot-container"
             ref="plotContainer">
+            {this.props.children}
             <path
               className="dist-plot"
               stroke="black"

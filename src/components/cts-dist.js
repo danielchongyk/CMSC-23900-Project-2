@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {uniform, exponential, normal, chisquared} from '../constants.js';
 import DistSimulator from './dist-simulator.js';
 import {Dropdown, DropdownButton} from 'react-bootstrap';
-import Slider from './slider.js';
+import DropdownSlider from './dropdown-slider.js';
 
 export default class CtsDist extends Component {
   constructor() {
@@ -17,20 +17,19 @@ export default class CtsDist extends Component {
     this.state = {
       dist: 'norm',
       support,
-      unif: uniform,
-      exp: exponential,
-      norm: normal,
-      chisq: chisquared
+      distFuncs: {
+        unif: uniform,
+        exp: exponential,
+        norm: normal,
+        chisq: chisquared
+      }
     };
   }
 
   state = {
     dist: null,
     support: null,
-    unif: null,
-    exp: null,
-    norm: null,
-    chisq: null
+    distFuncs: null
   }
 
   render() {
@@ -42,49 +41,31 @@ export default class CtsDist extends Component {
 
     const {
       dist,
+      distFuncs,
       support
     } = this.state;
 
-    const distFunc = this.state[dist];
+    const distFunc = distFuncs[dist];
 
     return (
-      <div className="flex">
+      <div className="flex" style={{width:"50%", height: `${height}px`}}>
         <DistSimulator
+          height={height}
+          width={0.65 * width}
+          margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
           distFunc={distFunc}
+          which="pdf"
         />
-        <div className="relative">
-          <DropdownButton
-            id="nav-dropdown"
-            title={distFunc.disp}
-            >
-            {
-              support.map(elt => {
-                return (
-                  <Dropdown.Item
-                    key={elt}
-                    eventKey={elt}
-                    onSelect={(event) => {this.setState({dist: elt})}}
-                    >
-                    {this.state[elt].disp}
-                  </Dropdown.Item>
-                );
-              })
-            }
-          </DropdownButton>
-          {Object.keys(distFunc.parameters).map(d => {
-              return (<Slider
-                key={d}
-                value={distFunc.parameters[d].value}
-                range={distFunc.parameters[d].range}
-                stepSize={0.01}
-                onChange={x => {
-                  distFunc.parameters[d].value = x;
-                  this.setState({[dist]: distFunc});
-                }}
-                sliderName={distFunc.parameters[d].name}
-              />);
-            })}
-        </div>
+        <DropdownSlider       
+          height={height}
+          width={0.35 * width}
+          margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
+          dist={dist}
+          distFuncs={distFuncs}
+          support={support}
+          changeDist={(value) => {this.setState({dist: value})}}
+          changeDistFunc={(key, value) => this.setState({[key]: Number(value)})}
+          />
       </div>
     );
   }

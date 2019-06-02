@@ -1,8 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {csv} from 'd3-fetch';
 import ExampleChart from './example-chart';
 import DistSimulator from './dist-simulator';
 import CtsDist from './cts-dist.js';
+import SimulationDemo from './simulation-demo.js';
 
 const longBlock = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -16,20 +18,19 @@ class RootComponent extends React.Component {
   constructor() {
     super();
     this.state = {
-      distSimDist: null,
       loading: true
     };
   }
 
   componentWillMount() {
     this.setState({
-      distSimDist: 'normal',
       loading: false
     });
   }
 
+
   render() {
-    const {distSimDist, loading, data} = this.state;
+    const {loading} = this.state;
     if (loading) {
       return <h1>LOADING</h1>;
     }
@@ -46,22 +47,33 @@ class RootComponent extends React.Component {
         <div className="relative">
         <h2>Probability Distributions</h2>
           <div className="flex">
-            <div>{`Before we can dive into the main statistical theory that drives the way that the quincunx \
-                   works, we first need to talk about probability distributions. Loosely speaking, a probability
-                   distribution is a function that assigns a set of objects various probabilities. For example,
-                   imagine you flip a coin. Then, your probability distribution function
-                   will assign to heads a probability of 1/2 and to tails a probability of 1/2 as well (assuming your coin
-                   isn't biased, of course!) This is an example of what's known as a Bernoulli distribution, which
-                   is specifically a probability function on two events: one "success" and one "failure". Of course,
-                   mathematicians over the years have come up with loads of different probability distributions. Try
-                   plotting out a few of them to the right (you can even change the parameters for these functions!)`}</div>
+            <div
+              style={{width:"50%"}}
+              margin-right="100px"
+              overflow="auto"
+              >
+              {`Before we can dive into the main statistical theory that drives the way that the quincunx \
+                works, we first need to talk about probability distributions. Loosely speaking, a probability
+                distribution is a function that assigns a set of objects various probabilities. For example,
+                imagine you flip a coin. Then, your probability distribution function
+                will assign to heads a probability of 1/2 and to tails a probability of 1/2 as well (assuming your coin
+                isn't biased, of course!) This is an example of what's known as a Bernoulli distribution, which
+                is specifically a probability function on two events: one "success" and one "failure". Of course,
+                mathematicians over the years have come up with loads of different probability distributions. Try
+                plotting out a few of them to the right (you can even change the parameters for these functions!)`}
+              </div>
             <CtsDist
-              height={500}
-              width={500}
-              margin={{left: 100, right: 100, top: 100, right: 100}}
+              height={300}
+              width={550}
+              margin={{top: 0, right: 0, bottom: 10, left: 50}}
             />
           </div>
         </div>
+        <SimulationDemo
+          height={600}
+          width={600}
+          margin={{top: 20, right: 0, bottom: 10, left: 50}}
+        />
       </div>
     );
   }
