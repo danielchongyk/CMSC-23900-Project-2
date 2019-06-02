@@ -19,7 +19,7 @@ export default class Axis extends Component {
     } = this.props;
     const axis = (which === 'x' ? axisBottom : which === 'y' ? axisLeft : axisRight)(scale);
     
-    if (which !== 'unif'){
+    if (which === 'y'){
       axis.tickFormat("");
     }
     select(this.axisG).call(axis);

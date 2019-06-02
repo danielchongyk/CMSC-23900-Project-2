@@ -57,6 +57,7 @@ export default class BarChart extends Component {
             <rect
               key={idx}
               fill="#d2a000"
+              stroke='white'
               x={xScale(d.x0)}
               y={yScale(d.value)}
               width={xScale(d.x1) - xScale(d.x0)}

@@ -55,7 +55,7 @@ export default class Simulation extends Component {
           <DistSimulator
             height={height}
             width={0.65 * width}
-            margin={{top: 20, right: 0, bottom: margin.bottom, left: margin.left}}
+            margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
             distFunc={distFunc}
             which="pdf"
             >

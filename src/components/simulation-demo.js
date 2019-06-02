@@ -20,8 +20,11 @@ function checkUndefined(arr) {
 }
 
 export default class SimulationDemo extends Component {
-	constructor() {
-		super();
+	constructor(props) {
+    super(props);
+    
+    const {width} = this.props;
+
 		const support = [
 			'unif',
 			'exp',
@@ -29,7 +32,12 @@ export default class SimulationDemo extends Component {
 			'chisq'
 		];
 
+    const leftWidth = 0.9 * width;
+    const leftPlotWidth = 0.65 * leftWidth;
+
 		this.state = {
+      leftWidth,
+      leftPlotWidth,
 			dist: 'norm',
       support,
       distFuncs: {
@@ -38,15 +46,21 @@ export default class SimulationDemo extends Component {
         norm: normal,
         chisq: chisquared
       },
-      barData: []
+      barData: [],
+      speedUp: 2,
+      bins: 10
 		};
 	}
 
 	state = {
+    leftWidth: null,
+    leftPlotWidth: null,
 		dist: null,
 		distFuncs: null,
     support: null,
-    barData: null
+    barData: null,
+    speedUp: null,
+    bins: null
   }
 
   sampleMultiple(count, speed) {
@@ -117,6 +131,7 @@ export default class SimulationDemo extends Component {
     } = this.props;
 
     const {
+      leftPlotWidth,
       dist,
       distFuncs
     } = this.state;
@@ -131,18 +146,18 @@ export default class SimulationDemo extends Component {
       .range([distFuncMin, distFuncMax]);
     const xScale = scaleLinear()
       .domain(distFunc.domain)
-      .range([50, 0.65 * 600]);
+      .range([margin.left, leftPlotWidth]);
     const yScale = scaleLinear()
       .domain([0, 1])
-      .range([height / 2 - 10, 20]);
+      .range([height / 2 - margin.bottom, margin.top]);
 
     // Getting the coordinates
     const value = valScale(Math.random());
     const invValue = distFunc.df.inv(value, ...distFuncArgs);
-    const startX = 0.65 * 600 + 50;
+    const startX = leftPlotWidth + margin.left;
     const startY = yScale(value);
     const midX = xScale(invValue);
-    const endY = height - 20;
+    const endY = height / 2 + yScale(0);
 
     return {
       path: [
@@ -156,35 +171,38 @@ export default class SimulationDemo extends Component {
 
 	render() {
 		const {
-			height,
-			width,
+      height,
+      width,
 			margin,
 		} = this.props;
 
 		const {
+      leftWidth,
+      leftPlotWidth,
 			dist,
       distFuncs,
       support,
-      barData
+      barData,
+      speedUp,
+      bins
     } = this.state;
     
     const xScale = scaleLinear()
       .domain(distFuncs[dist].domain)
-      .range([50, 0.65 * 600]);
+      .range([margin.left, leftPlotWidth]);
     const yScale = scaleLinear()
       .domain([0, distFuncs[dist].max])
-      .range([height / 2 - 10, 20]);
-    const bins = 10;
+      .range([height / 2 - margin.bottom, margin.top]);
 
 		return (
       <div className="flex">
-        <svg width={width} height={height} ref="wrapper"
-          onClick={() => {this.sampleMultiple(20, 2)}}>
-          <foreignObject x={0} y={0} width={width} height={height}>
+        <svg width={leftWidth} height={height} ref="wrapper"
+          onClick={() => {this.sampleMultiple(20, speedUp)}}>
+          <foreignObject x={0} y={0} width={leftWidth} height={height}>
             <Simulation
               height={height / 2}
-              width={600}
-              margin={{top: 20, right: 0, bottom: 10, left: 50}}
+              width={leftWidth}
+              margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
               dist={dist}
               distFuncs={distFuncs}
               support={support}
@@ -201,8 +219,8 @@ export default class SimulationDemo extends Component {
         </svg>
           <DropdownSlider       
             height={height}
-            width={0.5 * width - margin.left - margin.right}
-            margin={{top: 20, right: margin.right, bottom: margin.bottom, left: margin.left}}
+            width={width - leftPlotWidth - margin.left - margin.right}
+            margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: 0}}
             dist={dist}
             distFuncs={distFuncs}
             support={support}

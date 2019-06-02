@@ -21,6 +21,12 @@
   font-weight: semi-bold;
 }
 
+.section {
+  font-family: Roboto;
+  position: relative;
+  margin-bottom: 20px;
+}
+
 .max-width-1000 {
   max-width: 1000px;
 }
