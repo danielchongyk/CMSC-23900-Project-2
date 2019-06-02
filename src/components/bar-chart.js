@@ -19,7 +19,7 @@ export default class BarChart extends Component {
 
     if (barData.length === 0) return null;
     // Get the actual domain of the truncated distribution.
-    const distFuncArgs = Object.values(distFunc.parameters).map(d => d.value);
+    const distFuncArgs = Object.values(distFunc.parameters).map(d => Number(d.value));
     const distDomain = [
       Math.max(distFunc.domain[0],
         isNaN(distFunc.df.inv(0, ...distFuncArgs)) ? -Infinity : distFunc.df.inv(0, ...distFuncArgs)),

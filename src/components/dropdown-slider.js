@@ -65,7 +65,7 @@ export default class DropdownSlider extends Component {
               range={distFunc.parameters[d].range}
               stepSize={0.01}
               onChange={x => {
-                distFunc.parameters[d].value = x;
+                distFunc.parameters[d].value = Number(x);
                 changeDistFunc(dist, distFunc);
               }}
               sliderName={distFunc.parameters[d].name}
