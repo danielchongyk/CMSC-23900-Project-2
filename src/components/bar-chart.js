@@ -17,6 +17,7 @@ export default class BarChart extends Component {
       bins
     } = this.props;
 
+    if (barData.length === 0) return null;
     // Get the actual domain of the truncated distribution.
     const distFuncArgs = Object.values(distFunc.parameters).map(d => d.value);
     const distDomain = [
@@ -27,20 +28,20 @@ export default class BarChart extends Component {
     ];
 
     // Create the histogram and evaluate the bins.
+    const binWidth = (distDomain[1] - distDomain[0]) / bins;
+    const binArray = [... new Array(bins)].map((d, i) => i * binWidth + distDomain[0]);
     const histEval = histogram()
       .value(d => d)
       .domain(distDomain)
-      .thresholds(bins);
+      .thresholds(binArray);
     const hist = histEval(barData);
     const total = hist.reduce((acc, cur) => acc + cur.length, 0);
-    const binWidth = hist[1].x1 - hist[1].x0;
     const actualArea = distFunc.df.cdf(distFunc.domain[1], ...distFuncArgs) -
       distFunc.df.cdf(distFunc.domain[0], ...distFuncArgs);
-
     // Calculate the actual histogram densities.
     const data = hist.map(d => {
       return {
-        value: total ? d.length / total / binWidth * actualArea : 0,
+        value: d.length / total / binWidth * actualArea,
         x0: d.x0,
         x1: d.x1,
         length: d.length
