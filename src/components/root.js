@@ -36,14 +36,23 @@ class RootComponent extends React.Component {
     }
     return (
       <div className="main" margin-bottom="40px">
+        <div className="section" align-items="center">
+          <h1 text-align="center">Simulation and the Central Limit Theorem</h1>
+          <div text-align="center">A visualization by Daniel Chong, Jiayi Lin, and Chuanqi Yan</div>
+        </div>
         <div className="section">
-          <h1>Simulation and the Central Limit Theorem</h1>
-          <div>{`In 1873, Sir Francis Galton created the device you saw above, known as the quincunx, \
-                in an attempt to help his cousin Darwin in his defense of the theory of natural selection. \
-                The machine served its original purpose well, seeing how popular Darwin's theories are today, \
-                but it continues to be called on today to illustrate other statistical principles. In this article, \
-                we will delve into the statistical principles that underly the famous quincunx, and in doing so,
-                we will also show how our "quincunx" isn't necessarily unique!`
+          <SimulationDemo
+            height={600}
+            width={1200}
+            margin={{top: 20, right: 0, bottom: 30, left: 50}}
+            />
+          <div>{`In 1873, Sir Francis Galton created the device you saw above in order to defend his cousin Darwin's theory of \
+                natural selection. Seeing how popular Darwin's theories are today, the machine, known as the quincunx, \
+                evidently served its original purpose well. \
+                However, it continues to be called on today, as we are doing now, to illustrate other statistical principles. \
+                In this article, \
+                we will delve into the statistical principles that underly the famous quincunx, and by calling upon the central limit theorem,
+                we will also show exactly how the distribution of the quincunx's points comes about!`
             }</div>
           </div>
         <div className="relative">
