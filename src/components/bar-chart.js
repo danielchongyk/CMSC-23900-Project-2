@@ -17,16 +17,27 @@ export default class BarChart extends Component {
       bins
     } = this.props;
 
+    // Get the actual domain of the truncated distribution.
+    const distFuncArgs = Object.values(distFunc.parameters).map(d => d.value);
+    const distDomain = [
+      Math.max(distFunc.domain[0],
+        isNaN(distFunc.df.inv(0, ...distFuncArgs)) ? -Infinity : distFunc.df.inv(0, ...distFuncArgs)),
+      Math.min(distFunc.domain[1],
+        isNaN(distFunc.df.inv(1, ...distFuncArgs)) ? Infinity : distFunc.df.inv(1, ...distFuncArgs)),
+    ];
+
+    // Create the histogram and evaluate the bins.
     const histEval = histogram()
       .value(d => d)
-      .domain(xScale.domain())
+      .domain(distDomain)
       .thresholds(bins);
     const hist = histEval(barData);
     const total = hist.reduce((acc, cur) => acc + cur.length, 0);
-    const binWidth = hist[0].x1 - hist[0].x0;
-    const distFuncArgs = Object.values(distFunc.parameters).map(d => d.value);
-    const actualArea = distFunc.df.cdf(xScale.domain()[1], ...distFuncArgs) -
-      distFunc.df.cdf(xScale.domain()[0], ...distFuncArgs);
+    const binWidth = hist[1].x1 - hist[1].x0;
+    const actualArea = distFunc.df.cdf(distFunc.domain[1], ...distFuncArgs) -
+      distFunc.df.cdf(distFunc.domain[0], ...distFuncArgs);
+
+    // Calculate the actual histogram densities.
     const data = hist.map(d => {
       return {
         value: total ? d.length / total / binWidth * actualArea : 0,
@@ -40,7 +51,7 @@ export default class BarChart extends Component {
       <g className = "Bar Chart">
       {
         data.map((d, idx) => {
-          // We calculate the corresponding bin for the censored distribution.
+          // We calculate the corresponding bin for the truncated distribution.
           return (
             <rect
               key={idx}
