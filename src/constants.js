@@ -51,3 +51,20 @@ export const binomial = {
     p: {name: 'p', value: 0.5, range: [0,1]}
   }
 }
+
+export const poisson = {
+  disp: 'Poisson',
+  df: jStat.poisson,
+  parameters: {
+    lambda: {name: 'lambda', value: 5, range: [1,10]}
+  }
+}
+
+export const negbino = {
+  disp: 'Negative Binomial',
+  df: jStat.negbin,
+  parameters: {
+    n: {name: 'n', value: 5, range: [1,20]},
+    p: {name: 'p', value: 0.5, range: [0,1]}
+  }
+}
