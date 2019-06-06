@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {binomial} from '../constants.js';
+import {binomial, poisson, negbino} from '../constants.js';
 import DiscreteSimulator from './discrete.js';
 import {Dropdown, DropdownButton} from 'react-bootstrap';
 import DropdownSlider from './dropdown-slider.js';
@@ -8,14 +8,18 @@ export default class DiscDist extends Component {
   constructor() {
     super();
     const support = [
-      'bino'
+      'bino',
+      'pois',
+      'negbino'
     ];
 
     this.state = {
       dist: 'bino',
       support,
       distFuncs: {
-        bino: binomial
+        bino: binomial,
+        pois: poisson,
+        negbino: negbino
       }
     };
   }
