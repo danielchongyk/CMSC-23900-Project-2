@@ -15,13 +15,15 @@ export default class Axis extends Component {
     const {
       which,
       scale,
-      transform
+      transform,
+      label
     } = this.props;
     const axis = (which === 'x' ? axisBottom : which === 'y' ? axisLeft : axisRight)(scale);
     
-    if (which === 'y'){
+    if (!label){
       axis.tickFormat("");
     }
+
     select(this.axisG).call(axis);
   }
 

@@ -7,7 +7,7 @@ import {select} from 'd3-selection';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 import {scaleLinear} from 'd3-scale';
-import Simulation from './simulation.js';
+import Clt from './clt.js';
 import DropdownSlider from './dropdown-slider.js'
 import BarChart from './bar-chart.js'
 import SimMenu from './sim-menu.js'
@@ -20,7 +20,7 @@ function checkUndefined(arr) {
   }, true);
 }
 
-export default class SimulationDemo extends Component {
+export default class CltSim extends Component {
 	constructor(props) {
     super(props);
     
@@ -31,7 +31,7 @@ export default class SimulationDemo extends Component {
 			'exp',
 			'norm',
 			'chisq'
-    ];
+		];
 
     const leftWidth = 0.9 * width;
     const leftPlotWidth = 0.65 * leftWidth;
@@ -48,7 +48,7 @@ export default class SimulationDemo extends Component {
         chisq: chisquared
       },
       barData: [],
-      speedUp: 1,
+      speedUp: 2,
       bins: 10,
       numSims: 20
 		};
@@ -98,17 +98,15 @@ export default class SimulationDemo extends Component {
 
     const path = svg.append('path')
       .attr('d', lineEval(point))
-      .attr('fill', 'none')
-      .attr('stroke', 'gray')
-      .attr('opacity', 0.1);
+      .attr('fill', 'none');
 
     const circ = svg.append('circle')
-      .attr('cx', point[0].x)
-      .attr('cy', point[0].y)
+      .attr('cx', 0)
+      .attr('cy', 0)
       .attr('r', 5)
       .attr('fill', '#d2a000')
       .transition()
-        .delay(200 / speed)
+        .delay((d, i) => 10 * i)
         .duration(1000 / speed)
         .ease(easeLinear)
         .attrTween('transform', translateAlong(path.node()))
@@ -120,7 +118,7 @@ export default class SimulationDemo extends Component {
       return function(d, i, a) {
         return function(t) {
           const p = path.getPointAtLength(t * l);
-          return `translate(${p.x - point[0].x}, ${p.y - point[0].y})`;
+          return `translate(${p.x}, ${p.y})`;
         };
       };
     }
@@ -159,7 +157,7 @@ export default class SimulationDemo extends Component {
     // Getting the coordinates
     const value = valScale(Math.random());
     const invValue = distFunc.df.inv(value, ...distFuncArgs);
-    const startX = margin.left;
+    const startX = leftPlotWidth + margin.left;
     const startY = yScale(value);
     const midX = xScale(invValue);
     const endY = height / 2 + yScale(0);
@@ -192,7 +190,7 @@ export default class SimulationDemo extends Component {
       bins,
       numSims
     } = this.state;
-
+    
     const xScale = scaleLinear()
       .domain(distFuncs[dist].domain)
       .range([margin.left, leftPlotWidth]);
@@ -204,10 +202,10 @@ export default class SimulationDemo extends Component {
       <div className="flex">
         <svg width={leftWidth} height={height} ref="wrapper">
           <foreignObject x={0} y={0} width={leftWidth} height={height}>
-            <Simulation
+            <Clt
               height={height / 2}
               width={leftWidth}
-              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
+              margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
               dist={dist}
               distFuncs={distFuncs}
               support={support}
@@ -219,14 +217,14 @@ export default class SimulationDemo extends Component {
                 distFunc={distFuncs[dist]}
                 bins={bins}
               />
-            </Simulation>
+            </Clt>
           </foreignObject>
         </svg>
           <div className="relative">
             <DropdownSlider       
               height={height}
               width={width - leftPlotWidth - margin.left - margin.right}
-              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
+              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: 0}}
               dist={dist}
               distFuncs={distFuncs}
               support={support}
@@ -236,7 +234,7 @@ export default class SimulationDemo extends Component {
             <SimMenu
               height={height}
               width={width - leftPlotWidth - margin.left - margin.right}
-              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
+              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: 0}}
               bins={bins}
               changeBins={(value) => this.setState({bins: Number(value)})}
               speed={speedUp}

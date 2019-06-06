@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {csv} from 'd3-fetch';
 import ExampleChart from './example-chart';
-import DistSimulator from './dist-simulator';
 import CtsDist from './cts-dist.js';
 import SimulationDemo from './simulation-demo.js';
+import CltSim from './clt-sim.js';
 
 const longBlock = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -165,7 +165,7 @@ class RootComponent extends React.Component {
             We won't provide a rigorous proof here, but you can convince yourself through the demo below that with a sufficient number of draws from any distribution, \
             a histogram of sampled means will always tend towards the normal distribution!`}
           </div>
-          <SimulationDemo
+          <CltSim
             height={600}
             width={1200}
             margin={{top: 20, right: 0, bottom: 30, left: 50}}
