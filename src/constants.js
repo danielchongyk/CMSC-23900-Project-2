@@ -42,3 +42,12 @@ export const chisquared = {
   domain: [0.01, 10],
   max: 0.5
 }
+
+export const binomial = {
+  disp: 'Binomial',
+  df: jStat.binomial,
+  parameters: {
+    n: {name: 'n', value: 5, range: [1,20]},
+    p: {name: 'p', value: 0.5, range: [0,1]}
+  }
+}

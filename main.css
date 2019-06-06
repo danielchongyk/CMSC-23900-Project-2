@@ -116,15 +116,6 @@
   text-transform: uppercase;
 }
 
-.verticaltext {
-    transform: rotate(-90deg);
-    -ms-transform: rotate(-90deg);
-    -webkit-transform: rotate(-90deg);
-
-    bottom: 45%;
-    color: #d2a000;
-}
-
 .slider-container {
   align-items: center;
   display: flex;

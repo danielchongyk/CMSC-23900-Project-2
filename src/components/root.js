@@ -5,6 +5,7 @@ import ExampleChart from './example-chart';
 import CtsDist from './cts-dist.js';
 import SimulationDemo from './simulation-demo.js';
 import CltSim from './clt-sim.js';
+import DiscDist from './disc-dist.js';
 
 const longBlock = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -73,7 +74,7 @@ class RootComponent extends React.Component {
                   mathematicians over the years have come up with loads of different probability distributions. Try
                   plotting out a few of them to the right (you can even change the parameters for these functions!)`}
                 </div>
-              <CtsDist
+              <DiscDist
                 height={300}
                 width={550}
                 margin={{top: 0, right: 0, bottom: 20, left: 50}}
