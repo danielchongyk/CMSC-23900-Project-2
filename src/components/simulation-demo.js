@@ -10,6 +10,7 @@ import {scaleLinear} from 'd3-scale';
 import Simulation from './simulation.js';
 import DropdownSlider from './dropdown-slider.js'
 import BarChart from './bar-chart.js'
+import SimMenu from './sim-menu.js'
 
 function checkUndefined(arr) {
   return arr.reduce((acc, cur) => {
@@ -48,7 +49,8 @@ export default class SimulationDemo extends Component {
       },
       barData: [],
       speedUp: 2,
-      bins: 10
+      bins: 10,
+      numSims: 20
 		};
 	}
 
@@ -60,7 +62,8 @@ export default class SimulationDemo extends Component {
     support: null,
     barData: null,
     speedUp: null,
-    bins: null
+    bins: null,
+    numSims: null
   }
 
   sampleMultiple(count, speed) {
@@ -184,7 +187,8 @@ export default class SimulationDemo extends Component {
       support,
       barData,
       speedUp,
-      bins
+      bins,
+      numSims
     } = this.state;
     
     const xScale = scaleLinear()
@@ -196,8 +200,7 @@ export default class SimulationDemo extends Component {
 
 		return (
       <div className="flex">
-        <svg width={leftWidth} height={height} ref="wrapper"
-          onClick={() => {this.sampleMultiple(20, speedUp)}}>
+        <svg width={leftWidth} height={height} ref="wrapper">
           <foreignObject x={0} y={0} width={leftWidth} height={height}>
             <Simulation
               height={height / 2}
@@ -217,16 +220,31 @@ export default class SimulationDemo extends Component {
             </Simulation>
           </foreignObject>
         </svg>
-          <DropdownSlider       
-            height={height}
-            width={width - leftPlotWidth - margin.left - margin.right}
-            margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: 0}}
-            dist={dist}
-            distFuncs={distFuncs}
-            support={support}
-            changeDist={(value) => {this.setState({dist: value, barData: []})}}
-            changeDistFunc={(key, value) => this.setState({[key]: Number(value), barData: []})}
-            />
+          <div className="relative">
+            <DropdownSlider       
+              height={height}
+              width={width - leftPlotWidth - margin.left - margin.right}
+              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: 0}}
+              dist={dist}
+              distFuncs={distFuncs}
+              support={support}
+              changeDist={(value) => {this.setState({dist: value, barData: []})}}
+              changeDistFunc={(key, value) => this.setState({[key]: Number(value), barData: []})}
+              />
+            <SimMenu
+              height={height}
+              width={width - leftPlotWidth - margin.left - margin.right}
+              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: 0}}
+              bins={bins}
+              changeBins={(value) => this.setState({bins: Number(value)})}
+              speed={speedUp}
+              changeSpeed={(value) => this.setState({speedUp: Number(value)})}
+              numSims={numSims}
+              changeSims={(value) => this.setState({numSims: Number(value)})}
+              simFunc={() => {this.sampleMultiple(numSims, speedUp)}}
+              clearFunc={() => {this.setState({barData: []})}}
+              />
+          </div>
       </div>
 		);
 	}
