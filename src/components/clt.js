@@ -31,12 +31,13 @@ export default class Simulation extends Component {
 
 	render() {
 		const {
-			height,
+      height,
+      axisHeight,
 			width,
 			margin,
       dist,
       distFuncs,
-			support
+			support,
     } = this.props;
 
     const distFunc = distFuncs[dist];
@@ -44,21 +45,32 @@ export default class Simulation extends Component {
     const scale = scaleLinear()
       .domain([0, 1])
       .range([height - margin.bottom, margin.top]);
+    const xScale = scaleLinear()
+      .domain(distFunc.domain)
+      .range([margin.left, 0.65 * width - margin.right])
 
 		return (
       <div className="relative" align-items="center">
         <div className="flex">
           <DistSimulator
-            height={height}
+            height={(height - axisHeight) / 2}
             width={0.65 * width}
             margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
             distFunc={distFunc}
             which="pdf"
           />
         </div>
+        <svg width={0.65 * width} height = {axisHeight}>
+          <Axis
+              which="x"
+              scale={xScale}
+              transform={{x: 0, y: axisHeight / 2}}
+              label={true}
+            />
+        </svg>
         <div className="flex" style={{width:"50%", height: `${height}px`}}>
           <DistSimulator
-            height={height}
+            height={(height - axisHeight) / 2}
             width={0.65 * width}
             margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
             distFunc={this.normalDist(distFunc.df.mean(...distParams),

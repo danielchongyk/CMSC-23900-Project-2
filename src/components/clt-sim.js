@@ -69,64 +69,12 @@ export default class CltSim extends Component {
   sampleMultiple(count, speed) {
     const {barData} = this.state;
     // Simulate animate multiple circles.
-    [... new Array(count)].forEach(() => {
-      barData.push(this.animateCircles(speed));
-    })
+    barData.push(this.animateCircles(20))
     setTimeout(this.setState({barData}), 1000 / speed);
   }
   
-  animateCircles(speed) {
-    let sim = this.simulateDraw();
-    let point = sim.path;
-    let count = 0;
-
-    // Simulate until not undefined.
-    while (!checkUndefined(point) && count <= 3) {
-      sim = this.simulateDraw();
-      point = sim.path;
-      count++;
-    }
-    if (count > 3) {
-      return null;
-    }
-
-    // Proceed with drawing the circles.
-    const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
-    const lineEval = line()
-      .x(d => d.x)
-      .y(d => d.y);
-
-    const path = svg.append('path')
-      .attr('d', lineEval(point))
-      .attr('fill', 'none');
-
-    const circ = svg.append('circle')
-      .attr('cx', 0)
-      .attr('cy', 0)
-      .attr('r', 5)
-      .attr('fill', '#d2a000')
-      .transition()
-        .delay((d, i) => 10 * i)
-        .duration(1000 / speed)
-        .ease(easeLinear)
-        .attrTween('transform', translateAlong(path.node()))
-        .on('end', () => path.remove())
-        .remove();
-
-    function translateAlong(path) {
-      const l = path.getTotalLength();
-      return function(d, i, a) {
-        return function(t) {
-          const p = path.getPointAtLength(t * l);
-          return `translate(${p.x}, ${p.y})`;
-        };
-      };
-    }
-
-    return sim.value;
-  }
-
-  simulateDraw() {
+  animateCircles(num) {
+    // Import constants
 		const {
 			height,
 			width,
@@ -135,6 +83,90 @@ export default class CltSim extends Component {
 
     const {
       leftPlotWidth,
+      dist,
+      distFuncs,
+      speedUp
+    } = this.state;
+
+    const distFunc = distFuncs[dist];
+    const distFuncArgs = Object.values(distFunc.parameters).map(d => Number(d.value));
+
+    const xScale = scaleLinear()
+      .domain(distFunc.domain)
+      .range([margin.left, leftPlotWidth]);
+    const yScale = scaleLinear()
+      .domain([0, distFunc.max])
+      .range([height * 0.45 - margin.bottom, margin.top]);
+    const endY = 0.5 * height;
+    const endMeanY = height - margin.bottom;
+
+    const sims = [...new Array(num)].map(d => this.simulateDraw());
+    const mean = sims.reduce((acc, cur) => {
+      return acc + cur;
+    }, 0) / num;
+    const meanScaled = xScale(mean);
+    const paths = sims.map(d => {
+      const startX = xScale(d);
+      const startY = yScale(distFunc.df.pdf(d, ...distFuncArgs));
+
+      return [
+        {x: startX, y: startY},
+        {x: startX, y: endY},
+        {x: meanScaled, y: endY},
+        {x: meanScaled, y: endMeanY}
+      ]
+    });
+
+    // Proceed with drawing the circles.
+    const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
+    const lineEval = line()
+      .x(d => d.x)
+      .y(d => d.y);
+    
+    const path = svg.selectAll('newPath')
+      .data(paths)
+      .enter().append('path')
+        .attr('class', 'newPath')
+        .attr('d', d => lineEval(d))
+        .attr('fill', 'none')
+        .attr('stroke', 'gray')
+        .attr('opacity', 0.1);
+    path.enter()[0].forEach(function(d) {
+      console.log(d.__data__);
+    });
+    const circ = svg.selectAll('circle')
+      .data(paths)
+      .enter().append('circle')
+        .attr('cx', d => d[0].x)
+        .attr('cy', d => d[0].y)
+        .attr('r', 5)
+        .attr('fill', '#d2a000')
+        .attr('opacity', 1)
+        .transition()
+          .delay(200 / speedUp)
+          .duration(1000 / speedUp)
+          .ease(easeLinear)
+          //.attrTween('transform', (d, i) => {
+          //  return translateAlong(select(`.newPath:nth-child(${i + 2})`).node());
+          //})
+          //.on('end', (d, i) => select(`.newPath:nth-child(${i + 1})`).node().remove())
+          .remove();
+
+    function translateAlong(path) {
+      const l = path.getTotalLength();
+      return function(d, i, a) {
+        return function(t) {
+          const p = path.getPointAtLength(t * l);
+          return `translate(${p.x - paths[i][0].x}, ${p.y - paths[i][0].y})`;
+        };
+      };
+    }
+
+    return mean;
+  }
+
+  simulateDraw() {
+    const {
       dist,
       distFuncs
     } = this.state;
@@ -147,29 +179,12 @@ export default class CltSim extends Component {
     const valScale = scaleLinear()
       .domain([0, 1])
       .range([distFuncMin, distFuncMax]);
-    const xScale = scaleLinear()
-      .domain(distFunc.domain)
-      .range([margin.left, leftPlotWidth]);
-    const yScale = scaleLinear()
-      .domain([0, 1])
-      .range([height / 2 - margin.bottom, margin.top]);
 
     // Getting the coordinates
     const value = valScale(Math.random());
     const invValue = distFunc.df.inv(value, ...distFuncArgs);
-    const startX = leftPlotWidth + margin.left;
-    const startY = yScale(value);
-    const midX = xScale(invValue);
-    const endY = height / 2 + yScale(0);
 
-    return {
-      path: [
-        {x: startX, y: startY},
-        {x: midX, y: startY},
-        {x: midX, y: endY}
-      ],
-      value: invValue
-    };
+    return invValue;
   }
 
 	render() {
@@ -196,14 +211,15 @@ export default class CltSim extends Component {
       .range([margin.left, leftPlotWidth]);
     const yScale = scaleLinear()
       .domain([0, distFuncs[dist].max])
-      .range([height / 2 - margin.bottom, margin.top]);
+      .range([height * 0.45 - margin.bottom, margin.top]);
 
 		return (
       <div className="flex">
         <svg width={leftWidth} height={height} ref="wrapper">
           <foreignObject x={0} y={0} width={leftWidth} height={height}>
             <Clt
-              height={height / 2}
+              height={height}
+              axisHeight={0.1 * height}
               width={leftWidth}
               margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
               dist={dist}
