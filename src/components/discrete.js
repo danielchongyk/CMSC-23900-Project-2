@@ -41,9 +41,6 @@ export default class DiscreteSimulator extends Component {
       return acc;
     }, []);
 
-    console.log(data);
-
-
     const xScale = scaleBand()
     	//.domain([0,distFunc.parameters.n.value])
     	.domain(xData)
@@ -71,7 +68,7 @@ export default class DiscreteSimulator extends Component {
 	                y={yScale(d.y)}
 	                width={xScale.bandwidth()}
 	                height={height - margin.bottom - yScale(d.y)}
-	                transform= {{x: margin.top, y: 0}}
+	                transform={`translate(${margin.top}, ${0})`}
 	                />
 	            )
 	          })
