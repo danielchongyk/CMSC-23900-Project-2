@@ -50,6 +50,7 @@ export default class CltSim extends Component {
       barData: [],
       speedUp: 2,
       bins: 10,
+      numTrials: 10,
       numSims: 20
 		};
 	}
@@ -63,14 +64,17 @@ export default class CltSim extends Component {
     barData: null,
     speedUp: null,
     bins: null,
+    numTrials: null,
     numSims: null
   }
 
-  sampleMultiple(count, speed) {
-    const {barData} = this.state;
+  sampleMultiple() {
+    const {barData, speedUp, numTrials, numSims} = this.state;
     // Simulate animate multiple circles.
-    barData.push(this.animateCircles(20))
-    setTimeout(this.setState({barData}), 1000 / speed);
+    [... new Array(numTrials)].forEach(() => {
+      barData.push(this.animateCircles(numSims))
+    })
+    setTimeout(this.setState({barData}), 1000 / speedUp);
   }
   
   animateCircles(num) {
@@ -122,45 +126,36 @@ export default class CltSim extends Component {
     const lineEval = line()
       .x(d => d.x)
       .y(d => d.y);
-    
-    const path = svg.selectAll('newPath')
-      .data(paths)
-      .enter().append('path')
-        .attr('class', 'newPath')
-        .attr('d', d => lineEval(d))
-        .attr('fill', 'none')
-        .attr('stroke', 'gray')
-        .attr('opacity', 0.1);
-    path.enter()[0].forEach(function(d) {
-      console.log(d.__data__);
-    });
-    const circ = svg.selectAll('circle')
-      .data(paths)
-      .enter().append('circle')
-        .attr('cx', d => d[0].x)
-        .attr('cy', d => d[0].y)
+
+    paths.forEach((point, i) => {
+      const path = svg.append('path')
+        .attr('d', lineEval(point))
+        .attr('fill', 'none');
+
+      const circ = svg.append('circle')
+        .attr('cx', point[0].x)
+        .attr('cy', point[0].y)
         .attr('r', 5)
         .attr('fill', '#d2a000')
-        .attr('opacity', 1)
+        .attr('opacity', 0.5)
         .transition()
           .delay(200 / speedUp)
           .duration(1000 / speedUp)
           .ease(easeLinear)
-          //.attrTween('transform', (d, i) => {
-          //  return translateAlong(select(`.newPath:nth-child(${i + 2})`).node());
-          //})
-          //.on('end', (d, i) => select(`.newPath:nth-child(${i + 1})`).node().remove())
+          .attrTween('transform', translateAlong(path.node()))
+          .on('end', () => path.remove())
           .remove();
 
-    function translateAlong(path) {
-      const l = path.getTotalLength();
-      return function(d, i, a) {
-        return function(t) {
-          const p = path.getPointAtLength(t * l);
-          return `translate(${p.x - paths[i][0].x}, ${p.y - paths[i][0].y})`;
+      function translateAlong(path) {
+        const l = path.getTotalLength();
+        return function(d, i, a) {
+          return function(t) {
+            const p = path.getPointAtLength(t * l);
+            return `translate(${p.x - point[0].x}, ${p.y - point[0].y})`;
+          };
         };
-      };
-    }
+      }
+    })
 
     return mean;
   }
@@ -203,7 +198,8 @@ export default class CltSim extends Component {
       barData,
       speedUp,
       bins,
-      numSims
+      numSims,
+      numTrials
     } = this.state;
     
     const xScale = scaleLinear()
@@ -225,6 +221,7 @@ export default class CltSim extends Component {
               dist={dist}
               distFuncs={distFuncs}
               support={support}
+              numTrials={numTrials}
               >
               <BarChart
                 barData={barData}
@@ -257,7 +254,9 @@ export default class CltSim extends Component {
               changeSpeed={(value) => this.setState({speedUp: Number(value)})}
               numSims={numSims}
               changeSims={(value) => this.setState({numSims: Number(value)})}
-              simFunc={() => {this.sampleMultiple(numSims, speedUp)}}
+              numTrials={numTrials}
+              changeTrials={(value) => this.setState({numTrials: Number(value)})}
+              simFunc={() => {this.sampleMultiple()}}
               clearFunc={() => {this.setState({barData: []})}}
               />
           </div>

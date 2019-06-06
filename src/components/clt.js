@@ -37,7 +37,8 @@ export default class Simulation extends Component {
 			margin,
       dist,
       distFuncs,
-			support,
+      support,
+      numTrials
     } = this.props;
 
     const distFunc = distFuncs[dist];
@@ -74,7 +75,7 @@ export default class Simulation extends Component {
             width={0.65 * width}
             margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
             distFunc={this.normalDist(distFunc.df.mean(...distParams),
-                                      distFunc.df.variance(...distParams),
+                                      distFunc.df.variance(...distParams) / numTrials,
                                       distFunc.domain,
                                       distFunc.max)}
             which="pdf"

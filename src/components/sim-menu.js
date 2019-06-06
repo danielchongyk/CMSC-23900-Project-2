@@ -35,6 +35,8 @@ export default class SimMenu extends Component {
       changeSpeed,
       numSims,
       changeSims,
+      numTrials,
+      changeTrials,
       simFunc,
       clearFunc
 		} = this.props;
@@ -45,6 +47,13 @@ export default class SimMenu extends Component {
     const simMax = 100;
     const speedMin = 1;
     const speedMax = 5;
+    const trialsMin = 1;
+    const trialsMax = 20;
+
+    const trialCheck = [];
+    if (numTrials) {
+      trialCheck.push(0);
+    }
 
 		return (
       <div
@@ -54,6 +63,42 @@ export default class SimMenu extends Component {
           height:`${height}px}`,
           margin:`${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px`
         }}>
+        <InputGroup className="mb-3">
+          <InputGroup.Prepend>
+            <InputGroup.Text id="basic-addon1">Number of Sims</InputGroup.Text>
+          </InputGroup.Prepend>
+          <FormControl
+            ref={"simInput"}
+            min={simMin} max={simMax} type="number" step="1"
+            placeholder={numSims}
+            aria-label="NumSims"
+            aria-describedby="basic-addon1"
+            onChange={() => changeSims(this.clamp(this.refs.simInput.value, simMin, simMax))}
+          />
+          {
+            trialCheck.map((d) => {
+              return (
+                <InputGroup.Prepend key={d}>
+                  <InputGroup.Text id="basic-addon1">Number of Trials</InputGroup.Text>
+                </InputGroup.Prepend>
+                );
+            })
+          }
+          {
+            trialCheck.map((d) => {
+              return (
+                <FormControl
+                  key={d}
+                  ref={"trialInput"}
+                  min={trialsMin} max={trialsMax} type="number" step="1"
+                  placeholder={numTrials}
+                  aria-label="NumTrials"
+                  aria-describedby="basic-addon1"
+                  onChange={() => changeTrials(this.clamp(this.refs.trialInput.value, trialsMin, trialsMax))}
+                />);
+            })
+          }
+        </InputGroup>
         <InputGroup className="mb-3">
           <InputGroup.Prepend>
             <InputGroup.Text id="basic-addon1">Number of Bins</InputGroup.Text>
@@ -66,19 +111,6 @@ export default class SimMenu extends Component {
             aria-describedby="basic-addon1"
             onChange={() => changeBins(this.clamp(this.refs.binInput.value, binMin, binMax))}
           />
-          <InputGroup.Prepend>
-            <InputGroup.Text id="basic-addon1">Number of Sims</InputGroup.Text>
-          </InputGroup.Prepend>
-          <FormControl
-            ref={"simInput"}
-            min={simMin} max={simMax} type="number" step="1"
-            placeholder={numSims}
-            aria-label="NumSims"
-            aria-describedby="basic-addon1"
-            onChange={() => changeSims(this.clamp(this.refs.simInput.value, simMin, simMax))}
-          />
-        </InputGroup>
-        <InputGroup className="mb-3">
           <InputGroup.Prepend>
             <InputGroup.Text id="basic-addon1">Speed</InputGroup.Text>
           </InputGroup.Prepend>
