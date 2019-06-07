@@ -6,6 +6,7 @@ import CtsDist from './cts-dist.js';
 import SimulationDemo from './simulation-demo.js';
 import CltSim from './clt-sim.js';
 import DiscDist from './disc-dist.js';
+import Quincunx from './quincunx.js'
 
 const longBlock = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -42,7 +43,7 @@ class RootComponent extends React.Component {
           <div text-align="center">A visualization by Daniel Chong, Jiayi Lin, and Chuanqi Yan</div>
         </div>
         <div className="section">
-          <SimulationDemo
+          <Quincunx
             height={600}
             width={1200}
             margin={{top: 20, right: 0, bottom: 30, left: 50}}
