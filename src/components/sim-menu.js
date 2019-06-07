@@ -38,15 +38,16 @@ export default class SimMenu extends Component {
       numTrials,
       changeTrials,
       simFunc,
-      clearFunc
+      clearFunc,
+      running
 		} = this.props;
 
     const binMin = 1;
-    const binMax = 30;
+    const binMax = 40;
     const simMin = 1;
     const simMax = 100;
-    const speedMin = 1;
-    const speedMax = 10;
+    const speedMin = 0.1;
+    const speedMax = 20;
     const trialsMin = 1;
     const trialsMax = 50;
 
@@ -70,9 +71,10 @@ export default class SimMenu extends Component {
           <FormControl
             ref={"simInput"}
             min={simMin} max={simMax} type="number" step="1"
-            placeholder={numSims}
+            defaultValue={numSims}
             aria-label="NumSims"
             aria-describedby="basic-addon1"
+            disabled={running}
             onChange={() => changeSims(this.clamp(this.refs.simInput.value, simMin, simMax))}
           />
           {
@@ -91,9 +93,10 @@ export default class SimMenu extends Component {
                   key={d}
                   ref={"trialInput"}
                   min={trialsMin} max={trialsMax} type="number" step="1"
-                  placeholder={numTrials}
+                  defaultValue={numTrials}
                   aria-label="NumTrials"
                   aria-describedby="basic-addon1"
+                  disabled={running}
                   onChange={() => changeTrials(this.clamp(this.refs.trialInput.value, trialsMin, trialsMax))}
                 />);
             })
@@ -106,7 +109,7 @@ export default class SimMenu extends Component {
           <FormControl
             ref={"binInput"}
             min={binMin} max={binMax} type="number" step="1"
-            placeholder={bins}
+            defaultValue={bins}
             aria-label="NumBins"
             aria-describedby="basic-addon1"
             onChange={() => changeBins(this.clamp(this.refs.binInput.value, binMin, binMax))}
@@ -117,7 +120,7 @@ export default class SimMenu extends Component {
           <FormControl
             ref={"speedInput"}
             min={speedMin} max={speedMax} type="number" step="0.1"
-            placeholder={speed}
+            defaultValue={speed}
             aria-label="speed"
             aria-describedby="basic-addon1"
             onChange={() => changeSpeed(this.clamp(this.refs.speedInput.value, speedMin, speedMax))}
@@ -128,15 +131,17 @@ export default class SimMenu extends Component {
             id="nav-dropdown"
             size="lg"
             onClick={() => simFunc()}
+            disabled={running}
             block>
-            Simulate
+            {!running ? 'Simulate' : 'Running...'}
           </Button>
           <Button
             id="nav-dropdown"
             size="lg"
             onClick={() => clearFunc()}
+            disabled={running}
             block>
-            Clear
+            {!running ? 'Clear' : 'Running...'}
           </Button>
         </ButtonToolbar>
       </div>

@@ -24,7 +24,7 @@ export default class DiscreteSimulator extends Component {
     } = this.props;
 
     // Sample from the function.
-    const xData = [0,1,2,3,4,5]
+    const xData = [... new Array(distFunc.domain(distFunc))].map((d, i) => i);
     const yData = xData.map(d => {
       return distFunc.df[which](d, ...Object.values(distFunc.parameters).map(d => d.value));
     });
@@ -36,16 +36,15 @@ export default class DiscreteSimulator extends Component {
     }
     const check = yData.map(d =>  checking(d));
 
-    let data = xData.reduce((acc, cur, idx) => {
+    const data = xData.reduce((acc, cur, idx) => {
       acc.push({x: cur, y: check[idx]})
       return acc;
     }, []);
 
     const xScale = scaleBand()
-    	//.domain([0,distFunc.parameters.n.value])
     	.domain(xData)
     	.range([margin.left, width - margin.right])
-    	.paddingInner(0.9);
+    	.paddingInner(0.5);
 
     const yScale = scaleLinear()
       .domain([0, 1])
@@ -68,7 +67,6 @@ export default class DiscreteSimulator extends Component {
 	                y={yScale(d.y)}
 	                width={xScale.bandwidth()}
 	                height={height - margin.bottom - yScale(d.y)}
-	                transform={`translate(${margin.top}, ${0})`}
 	                />
 	            )
 	          })

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {uniform, exponential, normal, chisquared} from '../constants.js';
+import {uniform, exponential, normal, chisquared, beta, gamma, centralF} from '../constants.js';
 import {scaleLinear} from 'd3-scale'
 import DistSimulator from './dist-simulator.js';
 import {Dropdown, DropdownButton} from 'react-bootstrap';
@@ -10,9 +10,12 @@ export default class CtsDist extends Component {
     super();
     const support = [
       'unif',
+      'beta',
       'exp',
+      'gamma',
       'norm',
-      'chisq'
+      'chisq',
+      'centralF'
     ];
 
     this.state = {
@@ -20,9 +23,12 @@ export default class CtsDist extends Component {
       support,
       distFuncs: {
         unif: uniform,
+        beta,
         exp: exponential,
+        gamma,
         norm: normal,
-        chisq: chisquared
+        chisq: chisquared,
+        centralF
       }
     };
   }

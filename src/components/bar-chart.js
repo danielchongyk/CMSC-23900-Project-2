@@ -14,7 +14,8 @@ export default class BarChart extends Component {
       xScale,
       yScale,
       distFunc,
-      bins
+      bins,
+      truncate
     } = this.props;
 
     if (barData.length === 0) return null;
@@ -36,8 +37,8 @@ export default class BarChart extends Component {
       .thresholds(binArray);
     const hist = histEval(barData);
     const total = hist.reduce((acc, cur) => acc + cur.length, 0);
-    const actualArea = distFunc.df.cdf(distFunc.domain[1], ...distFuncArgs) -
-      distFunc.df.cdf(distFunc.domain[0], ...distFuncArgs);
+    const actualArea = truncate ? distFunc.df.cdf(distFunc.domain[1], ...distFuncArgs) -
+      distFunc.df.cdf(distFunc.domain[0], ...distFuncArgs) : 1;
     // Calculate the actual histogram densities.
     const data = hist.map(d => {
       return {

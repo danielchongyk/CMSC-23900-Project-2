@@ -72,12 +72,13 @@ class RootComponent extends React.Component {
                   (assuming your coin isn't biased, of course!) This is an example of what's known as a Bernoulli distribution, \
                   which is specifically a probability function on two events: one "success" and one "failure". Of course,
                   mathematicians over the years have come up with loads of different probability distributions. Try
-                  plotting out a few of them to the right (you can even change the parameters for these functions!)`}
+                  plotting out a few of them to the right (you can even change the parameters for these functions!) Note that \
+                  the Bernoulli distribution is a special case of the binomial distribution, where the number of trials is two.`}
                 </div>
               <DiscDist
                 height={300}
                 width={550}
-                margin={{top: 0, right: 0, bottom: 20, left: 50}}
+                margin={{top: 20, right: 0, bottom: 20, left: 50}}
               />
             </div>
         </div>
@@ -171,6 +172,11 @@ class RootComponent extends React.Component {
             width={1200}
             margin={{top: 20, right: 0, bottom: 30, left: 50}}
             />
+          <div className = "section">
+            {`Note: in the above, the number of sims denotes the number of times we calculate the mean, while the number of trials denotes \
+              the number of observations we simulate every time we calculate a mean. While a simulation is running, you cannot edit the number \
+              of sims/trials, simulate a new batch, or clear the data, but feel free to modify the number of bins or speed the simulation up!`}
+          </div>
         </div>
       </div>
     );

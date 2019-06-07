@@ -80,7 +80,7 @@ export default class Simulation extends Component {
             distFunc={this.normalDist(distFunc.df.mean(...distParams),
                                       distFunc.df.variance(...distParams) / numTrials,
                                       distFunc.domain,
-                                      Math.max(3, distFunc.max))}
+                                      yScale.domain[1])}
             yScale={bottomScale}
             which="pdf"
             >

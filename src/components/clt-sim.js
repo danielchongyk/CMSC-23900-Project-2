@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
-import {uniform, exponential, normal, chisquared} from '../constants.js';
+import {uniform, exponential, normal, chisquared, beta, gamma, centralF} from '../constants.js';
 import {line} from 'd3-shape';
 import {interpolate} from 'd3-interpolate';
 import {select} from 'd3-selection';
@@ -9,9 +9,9 @@ import {easeLinear} from 'd3-ease';
 import {scaleLinear} from 'd3-scale';
 import {interpolateSpectral} from 'd3-scale-chromatic';
 import Clt from './clt.js';
-import DropdownSlider from './dropdown-slider.js'
-import BarChart from './bar-chart.js'
-import SimMenu from './sim-menu.js'
+import DropdownSlider from './dropdown-slider.js';
+import BarChart from './bar-chart.js';
+import SimMenu from './sim-menu.js';
 
 function checkUndefined(arr) {
   return arr.reduce((acc, cur) => {
@@ -28,10 +28,13 @@ export default class CltSim extends Component {
     const {width} = this.props;
 
 		const support = [
-			'unif',
-			'exp',
-			'norm',
-			'chisq'
+      'unif',
+      'beta',
+      'exp',
+      'gamma',
+      'norm',
+      'chisq',
+      'centralF'
 		];
 
     const leftWidth = 0.9 * width;
@@ -44,15 +47,19 @@ export default class CltSim extends Component {
       support,
       distFuncs: {
         unif: uniform,
+        beta,
         exp: exponential,
+        gamma,
         norm: normal,
-        chisq: chisquared
+        chisq: chisquared,
+        centralF
       },
       barData: [],
       speedUp: 1,
       bins: 10,
       numTrials: 10,
-      numSims: 20
+      numSims: 20,
+      running: false
 		};
 	}
 
@@ -66,19 +73,20 @@ export default class CltSim extends Component {
     speedUp: null,
     bins: null,
     numTrials: null,
-    numSims: null
+    numSims: null,
+    running: null
   }
 
   sampleMultiple() {
     const {speedUp, numTrials, numSims} = this.state;
     // Simulate animate multiple circles.
-    [... new Array(1)].forEach((d, i) => {
-      this.animateCircles(numTrials, (value) => this.setState({barData: value}), numSims, 0,
-                          (a, b, c, d, e) => this.animateCircles(a, b, c, d, e));
-    })
+    this.setState({running: true})
+    this.animateCircles(numTrials, (value) => this.setState({barData: value}), numSims, 0,
+                        (a, b, c, d, e, f) => this.animateCircles(a, b, c, d, e, f),
+                        () => this.setState({running: false}));
   }
   
-  animateCircles(num, onEnd, simTot, simNum, contFunc) {
+  animateCircles(num, onEnd, simTot, simNum, contFunc, stopFunc) {
     // Import constants
 		const {
 			height,
@@ -191,7 +199,9 @@ export default class CltSim extends Component {
             barData.push(mean);
             onEnd(barData);
             if (simNum < simTot - 1) {
-              contFunc(num, onEnd, simTot, simNum + 1, contFunc);
+              contFunc(num, onEnd, simTot, simNum + 1, contFunc, stopFunc);
+            } else {
+              stopFunc();
             }
           })
           .remove();
@@ -247,15 +257,18 @@ export default class CltSim extends Component {
       speedUp,
       bins,
       numSims,
-      numTrials
+      numTrials,
+      running
     } = this.state;
     
     const distFunc = distFuncs[dist];
+    const distParams = Object.values(distFunc.parameters).map(d => Number(d.value));
+    const peak = 1 / (Math.sqrt(2 * Math.PI * distFunc.df.variance(...distParams) / numTrials));
     const xScale = scaleLinear()
       .domain(distFunc.domain)
       .range([margin.left, leftPlotWidth]);
     const yScale = scaleLinear()
-      .domain([0, Math.max(3, distFunc.max)])
+      .domain([0, peak / 0.5])
       .range([0.45 * height - margin.bottom, margin.top]);
 
 		return (
@@ -279,6 +292,7 @@ export default class CltSim extends Component {
                 yScale={yScale}
                 distFunc={distFuncs[dist]}
                 bins={bins}
+                truncate={false}
               />
             </Clt>
           </foreignObject>
@@ -308,6 +322,7 @@ export default class CltSim extends Component {
               changeTrials={(value) => this.setState({barData: [], numTrials: Number(value)})}
               simFunc={() => {this.sampleMultiple()}}
               clearFunc={() => {this.setState({barData: []})}}
+              running={running}
               />
           </div>
       </div>

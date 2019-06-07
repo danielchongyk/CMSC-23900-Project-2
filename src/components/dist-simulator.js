@@ -78,7 +78,7 @@ export default class DistSimulator extends Component {
               which="y"
               scale={yScale}
               transform={{x: margin.left, y: 0}}
-              label={which === "cdf"}
+              label={true}
             />
         </svg>
       </div>

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
-import {uniform, exponential, normal, chisquared} from '../constants.js';
+import {uniform, exponential, normal, chisquared, beta, gamma, centralF} from '../constants.js';
 import {line} from 'd3-shape';
 import {interpolate} from 'd3-interpolate';
 import {select} from 'd3-selection';
@@ -8,9 +8,9 @@ import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 import {scaleLinear} from 'd3-scale';
 import Simulation from './simulation.js';
-import DropdownSlider from './dropdown-slider.js'
-import BarChart from './bar-chart.js'
-import SimMenu from './sim-menu.js'
+import DropdownSlider from './dropdown-slider.js';
+import BarChart from './bar-chart.js';
+import SimMenu from './sim-menu.js';
 
 function checkUndefined(arr) {
   return arr.reduce((acc, cur) => {
@@ -27,10 +27,13 @@ export default class SimulationDemo extends Component {
     const {width} = this.props;
 
 		const support = [
-			'unif',
-			'exp',
-			'norm',
-			'chisq'
+      'unif',
+      'beta',
+      'exp',
+      'gamma',
+      'norm',
+      'chisq',
+      'centralF'
     ];
 
     const leftWidth = 0.9 * width;
@@ -43,14 +46,18 @@ export default class SimulationDemo extends Component {
       support,
       distFuncs: {
         unif: uniform,
+        beta,
         exp: exponential,
+        gamma,
         norm: normal,
-        chisq: chisquared
+        chisq: chisquared,
+        centralF
       },
       barData: [],
       speedUp: 1,
       bins: 10,
-      numSims: 20
+      numSims: 20,
+      running: false
 		};
 	}
 
@@ -63,32 +70,57 @@ export default class SimulationDemo extends Component {
     barData: null,
     speedUp: null,
     bins: null,
-    numSims: null
+    numSims: null,
+    running: null
   }
 
-  sampleMultiple(count, speed) {
-    const {barData} = this.state;
+  sampleMultiple() {
+    const {speedUp, numSims} = this.state;
     // Simulate animate multiple circles.
-    [... new Array(count)].forEach(() => {
-      barData.push(this.animateCircles(speed));
-    })
-    setTimeout(this.setState({barData}), 1000 / speed);
+    this.setState({running: true})
+    // Simulate animate multiple circles.
+    this.animateCircles((value) => this.setState({barData: value}), numSims, 0,
+                        (a, b, c, d, e) => this.animateCircles(a, b, c, d, e),
+                        () => this.setState({running: false}));
+
   }
   
-  animateCircles(speed) {
-    let sim = this.simulateDraw();
-    let point = sim.path;
-    let count = 0;
+  animateCircles(onEnd, simTot, simNum, contFunc, stopFunc) {
+		const {
+			height,
+			width,
+			margin,
+    } = this.props;
 
-    // Simulate until not undefined.
-    while (!checkUndefined(point) && count <= 3) {
-      sim = this.simulateDraw();
-      point = sim.path;
-      count++;
-    }
-    if (count > 3) {
-      return null;
-    }
+    const {
+      barData,
+      leftPlotWidth,
+      dist,
+      distFuncs,
+      speedUp,
+    } = this.state;
+
+    const distFunc = distFuncs[dist];
+    const distFuncArgs = Object.values(distFunc.parameters).map(d => Number(d.value));
+
+    const xScale = scaleLinear()
+      .domain(distFunc.domain)
+      .range([margin.left, leftPlotWidth]);
+    const yScale = scaleLinear()
+      .domain([0, 1])
+      .range([height / 2 - margin.bottom, margin.top]);
+
+    const sim = this.simulateDraw();
+    const startX = margin.left;
+    const startY = yScale(sim.value);
+    const midX = xScale(sim.invValue);
+    const endY = height / 2 + yScale(0);
+
+    const point = [
+      {x: startX, y: startY},
+      {x: midX, y: startY},
+      {x: midX, y: endY}
+    ];
 
     // Proceed with drawing the circles.
     const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
@@ -100,7 +132,7 @@ export default class SimulationDemo extends Component {
       .attr('d', lineEval(point))
       .attr('fill', 'none')
       .attr('stroke', 'gray')
-      .attr('opacity', 0.1);
+      .attr('opacity', 0.5);
 
     const circ = svg.append('circle')
       .attr('cx', point[0].x)
@@ -108,11 +140,20 @@ export default class SimulationDemo extends Component {
       .attr('r', 5)
       .attr('fill', '#d2a000')
       .transition()
-        .delay(200 / speed)
-        .duration(1000 / speed)
+        .delay(200 / speedUp)
+        .duration(1000 / speedUp)
         .ease(easeLinear)
         .attrTween('transform', translateAlong(path.node()))
-        .on('end', () => path.remove())
+        .on('end', () => {
+          path.remove();
+          barData.push(sim.invValue);
+          onEnd(barData);
+          if (simNum < simTot - 1) {
+            contFunc(onEnd, simTot, simNum + 1, contFunc, stopFunc)
+          } else {
+            stopFunc();
+          }
+        })
         .remove();
 
     function translateAlong(path) {
@@ -124,19 +165,10 @@ export default class SimulationDemo extends Component {
         };
       };
     }
-
-    return sim.value;
   }
 
   simulateDraw() {
-		const {
-			height,
-			width,
-			margin,
-    } = this.props;
-
     const {
-      leftPlotWidth,
       dist,
       distFuncs
     } = this.state;
@@ -149,29 +181,12 @@ export default class SimulationDemo extends Component {
     const valScale = scaleLinear()
       .domain([0, 1])
       .range([distFuncMin, distFuncMax]);
-    const xScale = scaleLinear()
-      .domain(distFunc.domain)
-      .range([margin.left, leftPlotWidth]);
-    const yScale = scaleLinear()
-      .domain([0, 1])
-      .range([height / 2 - margin.bottom, margin.top]);
 
     // Getting the coordinates
     const value = valScale(Math.random());
     const invValue = distFunc.df.inv(value, ...distFuncArgs);
-    const startX = margin.left;
-    const startY = yScale(value);
-    const midX = xScale(invValue);
-    const endY = height / 2 + yScale(0);
 
-    return {
-      path: [
-        {x: startX, y: startY},
-        {x: midX, y: startY},
-        {x: midX, y: endY}
-      ],
-      value: invValue
-    };
+    return {value, invValue};
   }
 
 	render() {
@@ -190,7 +205,8 @@ export default class SimulationDemo extends Component {
       barData,
       speedUp,
       bins,
-      numSims
+      numSims,
+      running
     } = this.state;
 
     const xScale = scaleLinear()
@@ -218,6 +234,7 @@ export default class SimulationDemo extends Component {
                 yScale={yScale}
                 distFunc={distFuncs[dist]}
                 bins={bins}
+                truncate={true}
               />
             </Simulation>
           </foreignObject>
@@ -243,8 +260,9 @@ export default class SimulationDemo extends Component {
               changeSpeed={(value) => this.setState({speedUp: Number(value)})}
               numSims={numSims}
               changeSims={(value) => this.setState({numSims: Number(value)})}
-              simFunc={() => {this.sampleMultiple(numSims, speedUp)}}
+              simFunc={() => {this.sampleMultiple()}}
               clearFunc={() => {this.setState({barData: []})}}
+              running={running}
               />
           </div>
       </div>
