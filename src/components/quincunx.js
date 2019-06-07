@@ -222,27 +222,26 @@ export default class Quincunx extends Component {
                 {
                 triangledata.map((d, idx) => {
                 return (
-                  <path
+                  // <path
+                  //   key={idx}
+                  //   fill="#d2a000"
+                  //   className="dist-plot"
+                  //   stroke="steelblue"
+                  //   strokeWidth={strokew/1.8}
+                  //   fill="steelblue"
+                  //   opacity="1"
+                  //   d = {'M ' + xScale(d.x) +' '+ yScale(d.y) + ' l 0.1 0.1 l -0.2 0 z'}
+                  //   />
+                  <circ
                     key={idx}
-                    fill="#d2a000"
-                    className="dist-plot"
-                    stroke="steelblue"
-                    strokeWidth={strokew/1.8}
-                    fill="steelblue"
-                    opacity="1"
-                    d = {'M ' + xScale(d.x) +' '+ yScale(d.y) + ' l 0.1 0.1 l -0.2 0 z'}
-                    />
+                    fill='steelblue'
+                    className='peg'
+                    x={xScale(d.x)}
+                    y={yScale(d.y)}
+                    cx={pegRad}
+                    cy={pegRad}
+                  />
                     )
-                //  <rect
-                //  	key={idx}
-                //    fill="black"
-                //    //d= {'M ' + (ts) + ' ' + (ts) + ' L ' + (ts) + ' ' + (ts) + ' L ' + (ts/2) +' Z'}
-                //    height={5}
-                //    width={5}
-                //    x={xScale(d.x)}
-                //    y={height-yScale(d.y)}
-                //    />
-                  // )
                 })
               }
           	  </g>
