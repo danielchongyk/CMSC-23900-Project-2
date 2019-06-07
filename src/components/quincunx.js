@@ -11,7 +11,6 @@ import Simulation from './simulation.js';
 import BarChart from './bar-chart.js';
 import QsimMenu from './quincunx-sim-menu.js'
 
-
 function polarToCart(center, angle, radius) {
   return {
     x: center.x + radius * Math.cos(angle),
@@ -51,7 +50,7 @@ export default class Quincunx extends Component {
       leftPlotWidth,
       barData: [],
       speedUp: 1,
-      layers: 3,
+      numSims: 20,
       bins: 3,
       pegRad: 30,
       levelX: 50,
@@ -65,14 +64,14 @@ export default class Quincunx extends Component {
 		leftPlotWidth: null,
 		barData: null,
     speedUp: null,
-    layers: null,
+    numSims: null,
     bins: null,
     pegRad: null,
     levelX: null,
     levelY: null
 	}
 
-	animateCircles() {
+	animateCircles(count) {
 		// setting some variables and scales
 		const {
 	      height,
@@ -86,17 +85,17 @@ export default class Quincunx extends Component {
         leftPlotWidth,
 	      barData,
 	      speedUp,
-        layers,
+        bins,
         pegRad,
         levelX,
         levelY
       } = this.state;
 
 		const xScale = scaleLinear()
-				.domain([-levelX * Math.pow(2, layers), levelX * Math.pow(2, layers)])
+				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
 				.range([margin.left, leftPlotWidth - margin.right]);
 		const yScale = scaleLinear()
-				.domain([0, levelY * layers])
+				.domain([0, levelY * (bins - 1)])
         .range([margin.top, height - margin.bottom - histHeight]);
     const lineEval = line()
       .x(d => xScale(d.x))
@@ -105,36 +104,36 @@ export default class Quincunx extends Component {
     const shotRad = pegRad;
 
 		// Setting the path points
-    const point = this.simulatePath();
-    console.log(point)
+    const point = [... new Array(count)].map(() => this.simulatePath());
 		// create circle and make it transform along the path
 		// copied the code from clt-sim and simulation-demo, but not sure
     const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
 
-    const path = svg.append('path')
-      .attr('d', lineEval(point))
-      .attr('fill', 'none')
-      .attr('stroke', 'gray');
+    point.forEach((d, i) => {
+      const path = svg.append('path')
+        .attr('d', lineEval(d))
+        .attr('fill', 'none');
 
-		const circ = svg.append('circle')
-      .attr('cx', xScale(0))
-      .attr('cy', yScale(0))
-      .attr('r', shotRad)
-      .attr('fill', '#d2a000')
-      .transition()
-        .delay(200 / speedUp)
-        .duration(100 / speedUp / layers)
-        .ease(easeLinear)
-        .attrTween('transform', translateAlong(path.node()))
-        .on('end', () => path.remove())
-        .remove();
+      const circ = svg.append('circle')
+        .attr('cx', xScale(0))
+        .attr('cy', yScale(0))
+        .attr('r', shotRad)
+        .attr('fill', '#d2a000')
+        .transition()
+          .delay((200 + i * 100) / speedUp)
+          .duration(100 / speedUp * bins)
+          .ease(easeLinear)
+          .attrTween('transform', translateAlong(path.node()))
+          .on('end', () => path.remove())
+          .remove();
+    })
 
 		function translateAlong(path) {
 			const l = path.getTotalLength();
 			return function(d, i, a) {
 				return function(t) {
 					const p = path.getPointAtLength(t * l);
-					return `translate(${p.x - point[0].x}, ${p.y - point[0].y})`;
+					return `translate(${p.x - xScale(0)}, ${p.y - yScale(0)})`;
 				};
 			};
 		}
@@ -142,8 +141,8 @@ export default class Quincunx extends Component {
   }
   
   simulatePath() {
-    const {layers, levelX, levelY} = this.state;
-    const path = [... new Array(layers)].map(() => {
+    const {bins, levelX, levelY} = this.state;
+    const path = [... new Array(bins - 1)].map(() => {
       return 2 * Math.round(Math.random()) - 1;
     });
 
@@ -175,74 +174,65 @@ export default class Quincunx extends Component {
 		} = this.props;
 
 		const {
-        leftWidth,
-        histHeight,
-	      leftPlotWidth,
-	      barData,
-	      speedUp,
-	      bins,
-        pegRad
-    	} = this.state;
+      leftWidth,
+      histHeight,
+	    leftPlotWidth,
+	    barData,
+	    speedUp,
+      bins,
+      numSims,
+      pegRad,
+      levelX,
+      levelY
+    } = this.state;
 
-	    const xScale = scaleLinear()
-	    	.domain([0,1])
-	    	.range([margin.left, leftPlotWidth]);
-	    const yScale = scaleLinear()
-	    	.domain([0,1])
-	    	.range([margin.top*3.5,height- margin.top- histHeight]);
+		const xScale = scaleLinear()
+				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
+				.range([margin.left, leftPlotWidth - margin.right]);
+		const yScale = scaleLinear()
+				.domain([0, levelY * (bins - 1)])
+        .range([margin.top, height - margin.bottom - histHeight]);
 
-	    const level = bins;
-	    const spacing = 0.8/ (bins*2);
+    const layers = bins - 1;
+    const startOffset = pegRad * 2;
 
-	    let data = (new Array(bins+1).fill(0)).map((d,i) => (1/2 - i * spacing));
-	    const triangles = data.map(function(start, i) {
-	    	const starting = start;
-	    	console.log(starting);
-	    	const arr = new Array(i+1).fill(0);
-	    	const result = arr.map((d,j) => (starting+ j * 2 * spacing));
-	    	return result;
-	    })
-	    const triangledata = [];
-	   	triangles.forEach(function(row,i) {
-	   		row.forEach(function createcoord(element) {
-	   			triangledata.push({x:element, y: i/level})
-	   		})
-	   	})
-			// console.log('triangles:\n');
-			// console.log(triangles);
-       console.log(triangledata)
+    const circleCenters = [];
+    [... new Array(layers)].forEach((d, i) => {
+      const numPegs = i + 1;
+      const scale = scaleLinear()
+        .domain([0, numPegs - 1])
+        .range([- (numPegs - 1) * levelX, (numPegs - 1) * levelX]);
 
+      [... new Array(numPegs)].forEach((cur, ind) => {
+        console.log(scale(ind))
+        circleCenters.push({
+          x: xScale(scale(ind)),
+          y: yScale(i * levelY)
+        })
+      })
+    });
+    console.log(circleCenters);
 		return (
 	    <div className="flex">
-	      <svg width={leftWidth} height={height} ref="wrapper"
-          onClick={() => this.animateCircles()}>
+	      <svg width={leftWidth} height={height} ref="wrapper">
           <g className="plot-container"
                 ref="plotContainer">
                 {this.props.children}
                 {
-                triangledata.map((d, idx) => {
-                return (
-                  // <path
-                  //   key={idx}
-                  //   fill="#d2a000"
-                  //   className="dist-plot"
-                  //   stroke="steelblue"
-                  //   strokeWidth={strokew/1.8}
-                  //   fill="steelblue"
-                  //   opacity="1"
-                  //   d = {'M ' + xScale(d.x) +' '+ yScale(d.y) + ' l 0.1 0.1 l -0.2 0 z'}
-                  //   />
-                  <circle
-                    key={idx}
-                    fill='steelblue'
-                    className='peg'
-                    cx={xScale(d.x)}
-                    cy={yScale(d.y)}
-                    r={pegRad}
-                  />
-                    )
-                })
-              }
+                  circleCenters.map((d, idx) => {
+                    return (
+                      <circle
+                        key={idx}
+                        fill='steelblue'
+                        className='peg'
+                        cx={d.x}
+                        cy={startOffset + d.y}
+                        r={pegRad}
+                      />
+                      );
+                    }
+                  )
+                }
           	  </g>
 	        </svg>
 	          <div className="relative">
@@ -250,11 +240,18 @@ export default class Quincunx extends Component {
 	              height={height}
 	              width={width - leftPlotWidth - margin.left - margin.right}
 	              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
+	              sims={numSims}
+	              changeSims={(value) => this.setState({numSims: Number(value)})}
 	              bins={bins}
-	              changeBins={(value) => this.setState({bins: Number(value), pegRad: ((height - margin.bottom * 4.5 - histHeight) / (2*(bins+1)))})}
+	              changeBins={(value) => {
+                  this.setState({
+                    bins: Number(value),
+                    pegRad: ((height - margin.bottom * 4.5 - histHeight) / (2*(bins+1)))
+                  });
+                }}
 	              speed={speedUp}
 	              changeSpeed={(value) => this.setState({speedUp: Number(value)})}
-	              simFunc={() => {this.sampleMultiple(numSims, speedUp)}}
+	              simFunc={() => {this.animateCircles(numSims)}}
 	              clearFunc={() => {this.setState({barData: []})}}
 	              />
 	          </div>

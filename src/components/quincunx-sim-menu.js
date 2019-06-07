@@ -29,16 +29,22 @@ export default class QsimMenu extends Component {
 			height,
 			width,
       margin,
+      sims,
+      changeSims,
       bins,
       changeBins,
       speed,
       changeSpeed,
+      simFunc,
+      clearFunc
 		} = this.props;
 
+    const simMin = 1;
+    const simMax = 20;
     const binMin = 1;
-    const binMax = 30;
-    const speedMin = 1;
-    const speedMax = 5;
+    const binMax = 20;
+    const speedMin = 0.1;
+    const speedMax = 10;
 
 		return (
       <div
@@ -50,12 +56,25 @@ export default class QsimMenu extends Component {
         }}>
         <InputGroup className="mb-3">
           <InputGroup.Prepend>
+            <InputGroup.Text id="basic-addon1">Number of Sims</InputGroup.Text>
+          </InputGroup.Prepend>
+          <FormControl
+            ref={"simInput"}
+            min={simMin} max={simMax} type="number" step="1"
+            defaultValue={sims}
+            aria-label="NumSims"
+            aria-describedby="basic-addon1"
+            onChange={() => changeSims(this.clamp(this.refs.simInput.value, simMin, simMax))}
+          />
+        </InputGroup>
+        <InputGroup className="mb-3">
+          <InputGroup.Prepend>
             <InputGroup.Text id="basic-addon1">Number of Bins</InputGroup.Text>
           </InputGroup.Prepend>
           <FormControl
             ref={"binInput"}
             min={binMin} max={binMax} type="number" step="1"
-            placeholder={bins}
+            defaultValue={bins}
             aria-label="NumBins"
             aria-describedby="basic-addon1"
             onChange={() => changeBins(this.clamp(this.refs.binInput.value, binMin, binMax))}
@@ -66,7 +85,7 @@ export default class QsimMenu extends Component {
           <FormControl
             ref={"speedInput"}
             min={speedMin} max={speedMax} type="number" step="0.1"
-            placeholder={speed}
+            defaultValue={speed}
             aria-label="speed"
             aria-describedby="basic-addon1"
             onChange={() => changeSpeed(this.clamp(this.refs.speedInput.value, speedMin, speedMax))}
