@@ -158,15 +158,13 @@ export default class CltSim extends Component {
           .duration(500 / speedUp)
           .ease(easeLinear)
           .attrTween('transform', translateAlong(path.node()))
-          .on('end', () => handleEnd())
+          .on('end', () => {
+            path.remove();
+            if (i === num - 1) {
+              drawMeanPath();
+            }
+          })
           .remove();
-
-      function handleEnd() {
-        path.remove();
-        if (i === num - 1) {
-          drawMeanPath();
-        }
-      }
 
       function translateAlong(path) {
         const l = path.getTotalLength();
