@@ -80,14 +80,25 @@ export default class Quincunx extends Component {
     const bincountinit = new Array(bins).fill(0).map((d,i) => i)
     const perbincount = bincountinit.map(d => 
       barData.filter(element => (element == d)).length);
+    if (total == 0){
+    const arr = perbincount.map((d,i) => {
+      return {
+        value: 0,
+        x: i
+      }
+    });
+      return arr;
+    }
+    else {
     const arr = perbincount.map((d,i) => {
       return {
         value: d/total,
         x: i
       }
     });
-    return arr;
-  }
+      return arr;
+    }
+}
 
 	animateCircles(count) {
 		// setting some variables and scales
@@ -268,6 +279,7 @@ export default class Quincunx extends Component {
       .range([height - margin.top - histHeight, margin.top * 3.5]);
     console.log(barData)
     const binchart = this.createHist(bins, barData, barScalex, barScaley);
+    console.log(binchart);
 
 		return (
 	    <div className="flex">
@@ -311,7 +323,7 @@ export default class Quincunx extends Component {
             <Axis
               which="x"
               scale={barScalex}
-              transform={{x: 0, y: height- margin.bottom}}
+              transform={{x: 0, y: height- margin.bottom/(1.5)}}
               label={true}
               />
             <g className="Bottom"
