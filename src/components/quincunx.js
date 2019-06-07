@@ -110,6 +110,7 @@ export default class Quincunx extends Component {
     const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
 
     point.forEach((d, i) => {
+      console.log(d)
       const path = svg.append('path')
         .attr('d', lineEval(d))
         .attr('fill', 'none');
@@ -124,7 +125,11 @@ export default class Quincunx extends Component {
           .duration(100 / speedUp * bins)
           .ease(easeLinear)
           .attrTween('transform', translateAlong(path.node()))
-          .on('end', () => path.remove())
+          .on('end', () => {
+            path.remove();
+            barData.push((d[d.length - 1].x / levelX + bins - 1) / 2);
+            this.setState({barData});
+          })
           .remove();
     })
 
