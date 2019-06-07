@@ -201,8 +201,8 @@ export default class CltSim extends Component {
             } else {
               stopFunc();
             }
-          })
-          .remove();
+          });
+          //.remove();
 
       function translateAlong(path) {
         const l = path.getTotalLength();
