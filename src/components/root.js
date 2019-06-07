@@ -45,7 +45,7 @@ class RootComponent extends React.Component {
         <div className="section">
           <Quincunx
             height={600}
-            width={1200}
+            width={1100}
             margin={{top: 20, right: 20, bottom: 40, left: 50}}
             />
           <div>{`In 1873, Sir Francis Galton created the device you saw above in order to defend his cousin Darwin's theory of \

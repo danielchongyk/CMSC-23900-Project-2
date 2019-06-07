@@ -49,10 +49,11 @@ export default class Quincunx extends Component {
       barData: [],
       speedUp: 1,
       numSims: 20,
-      bins: 3,
-      pegRad: 15,
-      levelX: 20,
-      levelY: 20,
+      bins: 10,
+      pegRad: 6,
+      levelX: 10,
+      levelY: 10,
+      running: false
     };
 	}
 
@@ -65,10 +66,11 @@ export default class Quincunx extends Component {
     bins: null,
     pegRad: null,
     levelX: null,
-    levelY: null
+    levelY: null,
+    running: null
   }
 
-  createHist(bins, barData, barScalex, barScaley){
+  createHist(bins, barData){
     const total = barData.length;
     const bincountinit = new Array(bins).fill(0).map((d,i) => i)
     const perbincount = bincountinit.map(d => 
@@ -109,14 +111,17 @@ export default class Quincunx extends Component {
         bins,
         pegRad,
         levelX,
-        levelY
-      } = this.state;
+        levelY,
+        running
+    } = this.state;
+
+    this.setState({running: true});
 
     const lineEval = line()
       .x(d => d.x)
       .y(d => d.y);
 		const xScale = scaleLinear()
-				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
+				.domain([-levelX * bins, levelX * bins])
 				.range([margin.left, leftPlotWidth - margin.right]);
 		const yScale = scaleLinear()
 				.domain([0, levelY * (bins - 1)])
@@ -141,7 +146,9 @@ export default class Quincunx extends Component {
         .attr('cy', yScale(0))
         .attr('r', shotRad)
         .attr('fill', '#d2a000')
+        .attr('opacity', 0.8)
         .transition()
+          .attr('opacity', 1)
           .delay((200 + i * 100) / speedUp)
           .duration(100 / speedUp * bins)
           .ease(easeLinear)
@@ -150,6 +157,9 @@ export default class Quincunx extends Component {
             path.remove();
             barData.push(simulations[i].binVal);
             this.setState({barData});
+            if (i === count - 1) {
+              this.setState({running: false});
+            }
           })
           .remove();      
     })
@@ -228,11 +238,12 @@ export default class Quincunx extends Component {
       numSims,
       pegRad,
       levelX,
-      levelY
+      levelY,
+      running
     } = this.state;
 
 		const xScale = scaleLinear()
-				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
+				.domain([-levelX * bins, levelX * bins])
 				.range([margin.left, leftPlotWidth - margin.right]);
 		const yScale = scaleLinear()
 				.domain([0, levelY * (bins - 1)])
@@ -259,6 +270,7 @@ export default class Quincunx extends Component {
     const overallScale = scaleLinear()
       .domain([0, bins])
       .range([-bins * levelX, bins * levelX]);
+    const binchart = this.createHist(bins, barData);
 
     const barScalex = scaleBand()
       .domain([... new Array(bins)].map((d, i) => i))
@@ -268,11 +280,9 @@ export default class Quincunx extends Component {
     const barScaley = scaleLinear()
       .domain([0, 1])
       .range([histHeight - margin.bottom, 0]);
-    const binchart = this.createHist(bins, barData, barScalex, barScaley);
-
 
 		return (
-	    <div className="flex">
+      <div className="flex">
 	      <svg width={leftPlotWidth} height={height} ref="wrapper">
           <g className="plot-container"
                 ref="plotContainer">
@@ -342,18 +352,20 @@ export default class Quincunx extends Component {
 	              width={0.35 * width - margin.left - margin.right}
 	              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
 	              sims={numSims}
-	              changeSims={(value) => this.setState({numSims: Number(value)})}
+	              changeSims={(value) => this.setState({numSims: Number(value), barData: []})}
 	              bins={bins}
 	              changeBins={(value) => {
                   this.setState({
                     bins: Number(value),
-                    pegRad: ((height - margin.bottom * 4.5 - histHeight) / (2*(bins+1)))
+                    pegRad: ((height - margin.bottom * 4.5 - histHeight) / (2*(bins+1))),
+                    barData: []
                   });
                 }}
 	              speed={speedUp}
 	              changeSpeed={(value) => this.setState({speedUp: Number(value)})}
 	              simFunc={() => {this.animateCircles(numSims)}}
 	              clearFunc={() => {this.setState({barData: []})}}
+                running={running}
 	              />
 	          </div>
 	      </div>

@@ -36,12 +36,13 @@ export default class QsimMenu extends Component {
       speed,
       changeSpeed,
       simFunc,
-      clearFunc
+      clearFunc,
+      running
 		} = this.props;
 
     const simMin = 1;
-    const simMax = 20;
-    const binMin = 1;
+    const simMax = 100;
+    const binMin = 2;
     const binMax = 20;
     const speedMin = 0.1;
     const speedMax = 10;
@@ -64,12 +65,13 @@ export default class QsimMenu extends Component {
             defaultValue={sims}
             aria-label="NumSims"
             aria-describedby="basic-addon1"
+            disabled={running}
             onChange={() => changeSims(this.clamp(this.refs.simInput.value, simMin, simMax))}
           />
         </InputGroup>
         <InputGroup className="mb-3">
           <InputGroup.Prepend>
-            <InputGroup.Text id="basic-addon1">Number of Bins</InputGroup.Text>
+            <InputGroup.Text id="basic-addon1">Num. of Bins</InputGroup.Text>
           </InputGroup.Prepend>
           <FormControl
             ref={"binInput"}
@@ -77,6 +79,7 @@ export default class QsimMenu extends Component {
             defaultValue={bins}
             aria-label="NumBins"
             aria-describedby="basic-addon1"
+            disabled={running}
             onChange={() => changeBins(this.clamp(this.refs.binInput.value, binMin, binMax))}
           />
           <InputGroup.Prepend>
@@ -96,15 +99,17 @@ export default class QsimMenu extends Component {
             id="nav-dropdown"
             size="lg"
             onClick={() => simFunc()}
+            disabled={running}
             block>
-            Simulate
+            {!running ? 'Simulate' : 'Running...'}
           </Button>
           <Button
             id="nav-dropdown"
             size="lg"
             onClick={() => clearFunc()}
+            disabled={running}
             block>
-            Clear
+            {!running ? 'Clear' : 'Running...'}
           </Button>
         </ButtonToolbar>
       </div>
