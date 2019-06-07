@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
-import {uniform, exponential, normal, chisquared} from '../constants.js';
+import {normal} from 'jStat';
 import {line} from 'd3-shape';
 import {interpolate} from 'd3-interpolate';
 import {select} from 'd3-selection';
@@ -9,8 +9,8 @@ import {easeLinear} from 'd3-ease';
 import {scaleLinear, scaleBand} from 'd3-scale';
 import Simulation from './simulation.js';
 import BarChart from './bar-chart.js';
-import QsimMenu from './quincunx-sim-menu.js'
-import Axis from './axis.js'
+import QsimMenu from './quincunx-sim-menu.js';
+import Axis from './axis.js';
 
 function polarToCart(center, angle, radius) {
   return {
@@ -281,6 +281,26 @@ export default class Quincunx extends Component {
       .domain([0, 1])
       .range([histHeight - margin.bottom, 0]);
 
+    // Create a normal distribution path.
+    const numSample = 1000;
+    const mean = bins * 0.5;
+    const stdev = Math.sqrt(bins * 0.25);
+    const xData = [... new Array(numSample)].map((d, i) => {
+      return scaleLinear().domain([0, 1]).range([mean - 3 * stdev, mean + 3 * stdev])(i / (numSample - 1));
+    });
+    const yData = xData.map(d => {
+      return normal.pdf(d, bins * 0.5, Math.sqrt(bins * 0.25));
+    });
+    const xNormScale = scaleLinear()
+      .domain([Math.min(...xData), Math.max(...xData)])
+      .range([margin.left, leftPlotWidth - margin.right])
+    const data = xData.reduce((acc, cur, idx) => {
+      acc.push({x: cur, y: yData[idx]})
+      return acc;
+    }, []);
+
+    const lineEval = line().x(d => xNormScale(d.x)).y(d => height - histHeight + barScaley(d.y));
+
 		return (
       <div className="flex">
 	      <svg width={leftPlotWidth} height={height} ref="wrapper">
@@ -319,6 +339,11 @@ export default class Quincunx extends Component {
                   })
                 }
               }
+              <path
+                d={lineEval(data)}
+                stroke='black'
+                fill='none'
+                />
           	</g>
             <Axis
               which="x"
