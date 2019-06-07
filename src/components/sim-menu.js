@@ -46,9 +46,9 @@ export default class SimMenu extends Component {
     const simMin = 1;
     const simMax = 100;
     const speedMin = 1;
-    const speedMax = 5;
+    const speedMax = 10;
     const trialsMin = 1;
-    const trialsMax = 20;
+    const trialsMax = 50;
 
     const trialCheck = [];
     if (numTrials) {

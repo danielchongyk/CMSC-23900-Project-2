@@ -167,7 +167,7 @@ class RootComponent extends React.Component {
             a histogram of sampled means will always tend towards the normal distribution!`}
           </div>
           <CltSim
-            height={600}
+            height={700}
             width={1200}
             margin={{top: 20, right: 0, bottom: 30, left: 50}}
             />

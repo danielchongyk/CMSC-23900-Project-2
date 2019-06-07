@@ -7,6 +7,7 @@ import {select} from 'd3-selection';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 import {scaleLinear} from 'd3-scale';
+import {interpolateSpectral} from 'd3-scale-chromatic';
 import Clt from './clt.js';
 import DropdownSlider from './dropdown-slider.js'
 import BarChart from './bar-chart.js'
@@ -48,7 +49,7 @@ export default class CltSim extends Component {
         chisq: chisquared
       },
       barData: [],
-      speedUp: 2,
+      speedUp: 1,
       bins: 10,
       numTrials: 10,
       numSims: 20
@@ -69,15 +70,15 @@ export default class CltSim extends Component {
   }
 
   sampleMultiple() {
-    const {barData, speedUp, numTrials, numSims} = this.state;
+    const {speedUp, numTrials, numSims} = this.state;
     // Simulate animate multiple circles.
-    [... new Array(numTrials)].forEach(() => {
-      barData.push(this.animateCircles(numSims))
+    [... new Array(1)].forEach((d, i) => {
+      this.animateCircles(numTrials, (value) => this.setState({barData: value}), numSims, 0,
+                          (a, b, c, d, e) => this.animateCircles(a, b, c, d, e));
     })
-    setTimeout(this.setState({barData}), 1000 / speedUp);
   }
   
-  animateCircles(num) {
+  animateCircles(num, onEnd, simTot, simNum, contFunc) {
     // Import constants
 		const {
 			height,
@@ -86,11 +87,13 @@ export default class CltSim extends Component {
     } = this.props;
 
     const {
+      barData,
       leftPlotWidth,
       dist,
       distFuncs,
       speedUp
     } = this.state;
+    const color = interpolateSpectral(simNum / (simTot - 1));
 
     const distFunc = distFuncs[dist];
     const distFuncArgs = Object.values(distFunc.parameters).map(d => Number(d.value));
@@ -116,10 +119,14 @@ export default class CltSim extends Component {
       return [
         {x: startX, y: startY},
         {x: startX, y: endY},
-        {x: meanScaled, y: endY},
-        {x: meanScaled, y: endMeanY}
-      ]
+        {x: meanScaled, y: endY}
+      ];
     });
+
+    const meanPath = [
+      {x: meanScaled, y: endY},
+      {x: meanScaled, y: endMeanY}
+    ];
 
     // Proceed with drawing the circles.
     const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
@@ -136,15 +143,22 @@ export default class CltSim extends Component {
         .attr('cx', point[0].x)
         .attr('cy', point[0].y)
         .attr('r', 5)
-        .attr('fill', '#d2a000')
-        .attr('opacity', 0.5)
+        .attr('fill', color)
+        .attr('stroke', '#d2a000')
         .transition()
           .delay(200 / speedUp)
-          .duration(1000 / speedUp)
+          .duration(500 / speedUp)
           .ease(easeLinear)
           .attrTween('transform', translateAlong(path.node()))
-          .on('end', () => path.remove())
+          .on('end', () => handleEnd())
           .remove();
+
+      function handleEnd() {
+        path.remove();
+        if (i === num - 1) {
+          drawMeanPath();
+        }
+      }
 
       function translateAlong(path) {
         const l = path.getTotalLength();
@@ -155,9 +169,43 @@ export default class CltSim extends Component {
           };
         };
       }
-    })
+    });
 
-    return mean;
+    function drawMeanPath() {
+      const path = svg.append('path')
+        .attr('d', lineEval(meanPath))
+        .attr('fill', 'none');
+
+      const circ = svg.append('circle')
+        .attr('cx', meanPath[0].x)
+        .attr('cy', meanPath[0].y)
+        .attr('r', 5)
+        .attr('fill', '#d2a000')
+        .transition()
+          .delay(100 / speedUp)
+          .duration(500 / speedUp)
+          .ease(easeLinear)
+          .attrTween('transform', translateAlong(path.node()))
+          .on('end', () => {
+            path.remove();
+            barData.push(mean);
+            onEnd(barData);
+            if (simNum < simTot - 1) {
+              contFunc(num, onEnd, simTot, simNum + 1, contFunc);
+            }
+          })
+          .remove();
+
+      function translateAlong(path) {
+        const l = path.getTotalLength();
+        return function(d, i, a) {
+          return function(t) {
+            const p = path.getPointAtLength(t * l);
+            return `translate(${p.x - meanPath[0].x}, ${p.y - meanPath[0].y})`;
+          };
+        };
+      }        
+    }
   }
 
   simulateDraw() {
@@ -176,7 +224,7 @@ export default class CltSim extends Component {
       .range([distFuncMin, distFuncMax]);
 
     // Getting the coordinates
-    const value = valScale(Math.random());
+    const value = Math.random();
     const invValue = distFunc.df.inv(value, ...distFuncArgs);
 
     return invValue;
@@ -202,12 +250,13 @@ export default class CltSim extends Component {
       numTrials
     } = this.state;
     
+    const distFunc = distFuncs[dist];
     const xScale = scaleLinear()
-      .domain(distFuncs[dist].domain)
+      .domain(distFunc.domain)
       .range([margin.left, leftPlotWidth]);
     const yScale = scaleLinear()
-      .domain([0, distFuncs[dist].max])
-      .range([height * 0.45 - margin.bottom, margin.top]);
+      .domain([0, Math.max(3, distFunc.max)])
+      .range([0.45 * height - margin.bottom, margin.top]);
 
 		return (
       <div className="flex">
@@ -222,6 +271,7 @@ export default class CltSim extends Component {
               distFuncs={distFuncs}
               support={support}
               numTrials={numTrials}
+              bottomScale={yScale}
               >
               <BarChart
                 barData={barData}
@@ -255,7 +305,7 @@ export default class CltSim extends Component {
               numSims={numSims}
               changeSims={(value) => this.setState({numSims: Number(value)})}
               numTrials={numTrials}
-              changeTrials={(value) => this.setState({numTrials: Number(value)})}
+              changeTrials={(value) => this.setState({barData: [], numTrials: Number(value)})}
               simFunc={() => {this.sampleMultiple()}}
               clearFunc={() => {this.setState({barData: []})}}
               />

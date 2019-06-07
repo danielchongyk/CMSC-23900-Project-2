@@ -29,6 +29,9 @@ export default class Simulation extends Component {
     const scale = scaleLinear()
       .domain([0, 1])
       .range([height - margin.bottom, margin.top]);
+    const yScale = scaleLinear()
+      .domain([0, distFunc.max])
+      .range([height - margin.bottom, margin.top]);
 
 		return (
       <div className="relative" align-items="center">
@@ -38,6 +41,7 @@ export default class Simulation extends Component {
             width={0.65 * width}
             margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
             distFunc={distFunc}
+            yScale={scale}
             which="cdf"
           />
         </div>
@@ -47,6 +51,7 @@ export default class Simulation extends Component {
             width={0.65 * width}
             margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
             distFunc={distFunc}
+            yScale={yScale}
             which="pdf"
             >
           {this.props.children}

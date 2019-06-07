@@ -38,17 +38,19 @@ export default class Simulation extends Component {
       dist,
       distFuncs,
       support,
-      numTrials
+      numTrials,
+      bottomScale
     } = this.props;
 
     const distFunc = distFuncs[dist];
     const distParams = Object.values(distFunc.parameters).map(d => Number(d.value));
-    const scale = scaleLinear()
-      .domain([0, 1])
-      .range([height - margin.bottom, margin.top]);
+
     const xScale = scaleLinear()
       .domain(distFunc.domain)
       .range([margin.left, 0.65 * width - margin.right])
+    const yScale = scaleLinear()
+      .domain([0, distFunc.max])
+      .range([(height - axisHeight) / 2 - margin.bottom, margin.top]);
 
 		return (
       <div className="relative" align-items="center">
@@ -58,6 +60,7 @@ export default class Simulation extends Component {
             width={0.65 * width}
             margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
             distFunc={distFunc}
+            yScale={yScale}
             which="pdf"
           />
         </div>
@@ -77,7 +80,8 @@ export default class Simulation extends Component {
             distFunc={this.normalDist(distFunc.df.mean(...distParams),
                                       distFunc.df.variance(...distParams) / numTrials,
                                       distFunc.domain,
-                                      distFunc.max)}
+                                      Math.max(3, distFunc.max))}
+            yScale={bottomScale}
             which="pdf"
             >
             {this.props.children}

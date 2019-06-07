@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {uniform, exponential, normal, chisquared} from '../constants.js';
+import {scaleLinear} from 'd3-scale'
 import DistSimulator from './dist-simulator.js';
 import {Dropdown, DropdownButton} from 'react-bootstrap';
 import DropdownSlider from './dropdown-slider.js';
@@ -47,6 +48,10 @@ export default class CtsDist extends Component {
 
     const distFunc = distFuncs[dist];
 
+    const yScale = scaleLinear()
+      .domain([0, distFunc.max])
+      .range([height - margin.bottom, margin.top]);
+
     return (
       <div className="flex" style={{width:"50%", height: `${height}px`}}>
         <DistSimulator
@@ -54,6 +59,7 @@ export default class CtsDist extends Component {
           width={0.65 * width}
           margin={{top: margin.top, right: 0, bottom: margin.bottom, left: margin.left}}
           distFunc={distFunc}
+          yScale={yScale}
           which="pdf"
         />
         <DropdownSlider       

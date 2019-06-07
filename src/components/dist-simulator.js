@@ -29,6 +29,7 @@ export default class DistSimulator extends Component {
       width,
       margin,
       distFunc,
+      yScale,
       which
     } = this.props;
     
@@ -50,9 +51,6 @@ export default class DistSimulator extends Component {
     const xScale = scaleLinear()
       .domain(distFunc.domain)
       .range([margin.left, width - margin.right]);
-    const yScale = scaleLinear()
-      .domain([0, which === "cdf" ? 1 : distFunc.max])
-      .range([height - margin.bottom, margin.top]);
     const lineEval = line().x(d => xScale(d.x)).y(d => yScale(d.y));
 
     return (
