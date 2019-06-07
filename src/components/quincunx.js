@@ -184,7 +184,7 @@ export default class Quincunx extends Component {
     });
 
 		const xScale = scaleLinear()
-				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
+				.domain([-levelX * bins, levelX * bins])
 				.range([margin.left, leftPlotWidth - margin.right]);
 		const yScale = scaleLinear()
 				.domain([0, levelY * (bins - 1)])

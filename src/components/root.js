@@ -35,6 +35,7 @@ class RootComponent extends React.Component {
           <div text-align="center">A visualization by Daniel Chong, Jiayi Lin, and Chuanqi Yan</div>
         </div>
         <div className="section">
+          <h2>The Quincunx</h2>
           <div>{`Before we begin, try out the simulation below!`}</div>
           <Quincunx
             height={600}
