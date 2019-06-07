@@ -272,6 +272,7 @@ export default class Quincunx extends Component {
       .range([-bins * levelX, bins * levelX]);
     const binchart = this.createHist(bins, barData);
 
+
     const barScalex = scaleBand()
       .domain([... new Array(bins)].map((d, i) => i))
       .range([xScale(overallScale(0)), xScale(overallScale(bins))])
