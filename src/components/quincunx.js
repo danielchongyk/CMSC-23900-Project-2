@@ -91,15 +91,15 @@ export default class Quincunx extends Component {
         levelY
       } = this.state;
 
+    const lineEval = line()
+      .x(d => d.x)
+      .y(d => d.y);
 		const xScale = scaleLinear()
 				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
 				.range([margin.left, leftPlotWidth - margin.right]);
 		const yScale = scaleLinear()
 				.domain([0, levelY * (bins - 1)])
         .range([margin.top, height - margin.bottom - histHeight]);
-    const lineEval = line()
-      .x(d => xScale(d.x))
-      .y(d => yScale(d.y));
 
     const shotRad = pegRad;
 
@@ -110,7 +110,6 @@ export default class Quincunx extends Component {
     const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
 
     point.forEach((d, i) => {
-      console.log(d)
       const path = svg.append('path')
         .attr('d', lineEval(d))
         .attr('fill', 'none');
@@ -130,7 +129,7 @@ export default class Quincunx extends Component {
             barData.push((d[d.length - 1].x / levelX + bins - 1) / 2);
             this.setState({barData});
           })
-          .remove();
+          .remove();      
     })
 
 		function translateAlong(path) {
@@ -146,10 +145,18 @@ export default class Quincunx extends Component {
   }
   
   simulatePath() {
-    const {bins, levelX, levelY} = this.state;
+    const {height, margin} = this.props;
+    const {histHeight, leftPlotWidth, bins, levelX, levelY} = this.state;
     const path = [... new Array(bins - 1)].map(() => {
       return 2 * Math.round(Math.random()) - 1;
     });
+
+		const xScale = scaleLinear()
+				.domain([-levelX * (bins - 1), levelX * (bins - 1)])
+				.range([margin.left, leftPlotWidth - margin.right]);
+		const yScale = scaleLinear()
+				.domain([0, levelY * (bins - 1)])
+        .range([margin.top, height - margin.bottom - histHeight]);
 
     // Let each peg be spaced levelX horizontally and levelY vertically.
     // Generate the initial path. (note we will translate everything later.)
@@ -168,7 +175,16 @@ export default class Quincunx extends Component {
       return acc;
     }, [{x: 0, y: 0}]);
 
-    return mainPoints;
+    const transformPoints = mainPoints.map(d => {
+      return {
+        x: xScale(d.x),
+        y: yScale(d.y)
+      };
+    });
+    const last = transformPoints[transformPoints.length - 1];
+    transformPoints.push({x: last.x, y: height - margin.bottom})
+
+    return transformPoints;
   }
 
 	render() {
@@ -209,14 +225,17 @@ export default class Quincunx extends Component {
         .range([- (numPegs - 1) * levelX, (numPegs - 1) * levelX]);
 
       [... new Array(numPegs)].forEach((cur, ind) => {
-        console.log(scale(ind))
         circleCenters.push({
           x: xScale(scale(ind)),
           y: yScale(i * levelY)
         })
       })
     });
-    console.log(circleCenters);
+
+    const overallScale = scaleLinear()
+      .domain([0, bins])
+      .range([-bins * levelX, bins * levelX]);
+
 		return (
 	    <div className="flex">
 	      <svg width={leftWidth} height={height} ref="wrapper">
@@ -228,7 +247,7 @@ export default class Quincunx extends Component {
                     return (
                       <circle
                         key={idx}
-                        fill='steelblue'
+                        fill='gray'
                         className='peg'
                         cx={d.x}
                         cy={startOffset + d.y}
@@ -239,6 +258,25 @@ export default class Quincunx extends Component {
                   )
                 }
           	  </g>
+            <g className="Bottom"
+              translate={`transform(${0}, ${height - histHeight})`}>
+              {
+                [... new Array(bins + 1)].map((d, idx) => {
+                  return (
+                    <line
+                      key={idx}
+                      stroke='gray'
+                      strokeWidth={2}
+                      className={'bin'}
+                      x1={xScale(overallScale(idx))}
+                      y1={height - margin.bottom}
+                      x2={xScale(overallScale(idx))}
+                      y2={height - histHeight}
+                    />
+                  )
+                })
+              }
+            </g>
 	        </svg>
 	          <div className="relative">
 	            <QsimMenu
