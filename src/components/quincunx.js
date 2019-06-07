@@ -9,7 +9,8 @@ import {easeLinear} from 'd3-ease';
 import {scaleLinear} from 'd3-scale';
 import Simulation from './simulation.js';
 import BarChart from './bar-chart.js';
-import SimMenu from './sim-menu.js'
+import QsimMenu from './quincunx-sim-menu.js'
+
 
 function polarToCart(center, angle, radius) {
   return {
@@ -101,7 +102,7 @@ export default class Quincunx extends Component {
       .x(d => xScale(d.x))
       .y(d => yScale(d.y));
 
-    const shotRad = levelX - pegRad;
+    const shotRad = pegRad;
 
 		// Setting the path points
     const point = this.simulatePath();
@@ -179,7 +180,8 @@ export default class Quincunx extends Component {
 	      leftPlotWidth,
 	      barData,
 	      speedUp,
-	      bins
+	      bins,
+        pegRad
     	} = this.state;
 
 	    const xScale = scaleLinear()
@@ -187,12 +189,10 @@ export default class Quincunx extends Component {
 	    	.range([margin.left, leftPlotWidth]);
 	    const yScale = scaleLinear()
 	    	.domain([0,1])
-	    	.range([margin.top*1.5,height - margin.bottom- histHeight]);
+	    	.range([margin.top*3.5,height- margin.top- histHeight]);
 
 	    const level = bins;
 	    const spacing = 0.8/ (bins*2);
-
-	    const strokew = (height - margin.bottom * 2.5 - histHeight) / (bins+1);
 
 	    let data = (new Array(bins+1).fill(0)).map((d,i) => (1/2 - i * spacing));
 	    const triangles = data.map(function(start, i) {
@@ -232,14 +232,13 @@ export default class Quincunx extends Component {
                   //   opacity="1"
                   //   d = {'M ' + xScale(d.x) +' '+ yScale(d.y) + ' l 0.1 0.1 l -0.2 0 z'}
                   //   />
-                  <circ
+                  <circle
                     key={idx}
                     fill='steelblue'
                     className='peg'
-                    x={xScale(d.x)}
-                    y={yScale(d.y)}
-                    cx={pegRad}
-                    cy={pegRad}
+                    cx={xScale(d.x)}
+                    cy={yScale(d.y)}
+                    r={pegRad}
                   />
                     )
                 })
@@ -247,12 +246,12 @@ export default class Quincunx extends Component {
           	  </g>
 	        </svg>
 	          <div className="relative">
-	            <SimMenu
+	            <QsimMenu
 	              height={height}
 	              width={width - leftPlotWidth - margin.left - margin.right}
 	              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
 	              bins={bins}
-	              changeBins={(value) => this.setState({bins: Number(value)})}
+	              changeBins={(value) => this.setState({bins: Number(value), pegRad: ((height - margin.bottom * 4.5 - histHeight) / (2*(bins+1)))})}
 	              speed={speedUp}
 	              changeSpeed={(value) => this.setState({speedUp: Number(value)})}
 	              simFunc={() => {this.sampleMultiple(numSims, speedUp)}}
