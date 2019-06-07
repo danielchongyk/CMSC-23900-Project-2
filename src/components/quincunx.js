@@ -6,10 +6,11 @@ import {interpolate} from 'd3-interpolate';
 import {select} from 'd3-selection';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
-import {scaleLinear} from 'd3-scale';
+import {scaleLinear, scaleBand} from 'd3-scale';
 import Simulation from './simulation.js';
 import BarChart from './bar-chart.js';
 import QsimMenu from './quincunx-sim-menu.js'
+import Axis from './axis.js'
 
 function polarToCart(center, angle, radius) {
   return {
@@ -69,7 +70,24 @@ export default class Quincunx extends Component {
     pegRad: null,
     levelX: null,
     levelY: null
-	}
+  }
+
+  createHist(bins, barData, barScalex, barScaley){
+    if (barData === []) {
+      return [];
+    }
+    const total = barData.length;
+    const bincountinit = new Array(bins).fill(0).map((d,i) => i)
+    const perbincount = bincountinit.map(d => 
+      barData.filter(element => (element == d)).length);
+    const arr = perbincount.map((d,i) => {
+      return {
+        value: d/total,
+        x: i
+      }
+    });
+    return arr;
+  }
 
 	animateCircles(count) {
 		// setting some variables and scales
@@ -104,7 +122,8 @@ export default class Quincunx extends Component {
     const shotRad = pegRad;
 
 		// Setting the path points
-    const point = [... new Array(count)].map(() => this.simulatePath());
+    const simulations = [... new Array(count)].map(() => this.simulatePath());
+    const point = simulations.map(d => d.path);
 		// create circle and make it transform along the path
 		// copied the code from clt-sim and simulation-demo, but not sure
     const svg = select(ReactDOM.findDOMNode(this.refs.wrapper));
@@ -126,7 +145,7 @@ export default class Quincunx extends Component {
           .attrTween('transform', translateAlong(path.node()))
           .on('end', () => {
             path.remove();
-            barData.push((d[d.length - 1].x / levelX + bins - 1) / 2);
+            barData.push(simulations[i].binVal);
             this.setState({barData});
           })
           .remove();      
@@ -182,9 +201,12 @@ export default class Quincunx extends Component {
       };
     });
     const last = transformPoints[transformPoints.length - 1];
-    transformPoints.push({x: last.x, y: height - margin.bottom})
+    transformPoints.push({x: last.x, y: height - margin.bottom});
 
-    return transformPoints;
+    return {
+      path: transformPoints,
+      binVal: (path.reduce((acc, cur) => acc + cur, 0) + bins - 1) / 2
+    };
   }
 
 	render() {
@@ -236,6 +258,17 @@ export default class Quincunx extends Component {
       .domain([0, bins])
       .range([-bins * levelX, bins * levelX]);
 
+    const barScalex = scaleBand()
+      .domain([... new Array(bins)].map((d, i) => i))
+      .range([xScale(overallScale(0)), xScale(overallScale(bins))])
+      .paddingInner(0);
+
+    const barScaley = scaleLinear()
+      .domain([0, 1])
+      .range([height - margin.top - histHeight, margin.top * 3.5]);
+    console.log(barData)
+    const binchart = this.createHist(bins, barData, barScalex, barScaley);
+
 		return (
 	    <div className="flex">
 	      <svg width={leftWidth} height={height} ref="wrapper">
@@ -257,7 +290,30 @@ export default class Quincunx extends Component {
                     }
                   )
                 }
-          	  </g>
+                {
+                  binchart.map((d, idx) => {
+                  // We calculate the corresponding bin for the truncated distribution.
+                  return (
+                    <rect
+                      key={idx}
+                      fill="#d2a000"
+                      stroke='white'
+                      x={barScalex(d.x)}
+                      y={height - histHeight + barScaley(d.value)}
+                      width={barScalex.bandwidth()}
+                      height={barScaley.range()[0]- barScaley(d.value)}
+                    />
+                  )
+                  })
+                }
+              }
+          	</g>
+            <Axis
+              which="x"
+              scale={barScalex}
+              transform={{x: 0, y: height- margin.bottom}}
+              label={true}
+              />
             <g className="Bottom"
               translate={`transform(${0}, ${height - histHeight})`}>
               {
