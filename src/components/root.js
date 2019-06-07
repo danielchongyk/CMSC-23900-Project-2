@@ -46,7 +46,7 @@ class RootComponent extends React.Component {
           <Quincunx
             height={600}
             width={1200}
-            margin={{top: 20, right: 0, bottom: 30, left: 50}}
+            margin={{top: 20, right: 20, bottom: 40, left: 50}}
             />
           <div>{`In 1873, Sir Francis Galton created the device you saw above in order to defend his cousin Darwin's theory of \
                 natural selection. Seeing how popular Darwin's theories are today, the machine, known as the quincunx, \

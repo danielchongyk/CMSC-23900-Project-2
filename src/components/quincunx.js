@@ -41,26 +41,22 @@ export default class Quincunx extends Component {
     super(props);
 
     const {width} = this.props;
+    const leftPlotWidth = 0.65 * width;
 
-    const leftWidth = 0.9 * width;
-    const leftPlotWidth = 0.65 * leftWidth;
-
-	this.state = {
-      leftWidth,
+  	this.state = {
       histHeight: 300,
       leftPlotWidth,
       barData: [],
       speedUp: 1,
       numSims: 20,
       bins: 3,
-      pegRad: 30,
-      levelX: 50,
-      levelY: 50,
-		};
+      pegRad: 15,
+      levelX: 20,
+      levelY: 20,
+    };
 	}
 
 	state = {
-    leftWidth: null,
     histHeight: null,
 		leftPlotWidth: null,
 		barData: null,
@@ -73,29 +69,26 @@ export default class Quincunx extends Component {
   }
 
   createHist(bins, barData, barScalex, barScaley){
-    if (barData === []) {
-      return [];
-    }
     const total = barData.length;
     const bincountinit = new Array(bins).fill(0).map((d,i) => i)
     const perbincount = bincountinit.map(d => 
       barData.filter(element => (element == d)).length);
     if (total == 0){
-    const arr = perbincount.map((d,i) => {
-      return {
-        value: 0,
-        x: i
-      }
-    });
+      const arr = perbincount.map((d, i) => {
+        return {
+          value: 0,
+          x: i
+        }
+      });
       return arr;
     }
     else {
-    const arr = perbincount.map((d,i) => {
-      return {
-        value: d/total,
-        x: i
-      }
-    });
+      const arr = perbincount.map((d, i) => {
+        return {
+          value: d / total,
+          x: i
+        }
+      });
       return arr;
     }
 }
@@ -109,7 +102,6 @@ export default class Quincunx extends Component {
 		} = this.props;
 
 		const {
-	      leftWidth,
         histHeight,
         leftPlotWidth,
 	      barData,
@@ -228,7 +220,6 @@ export default class Quincunx extends Component {
 		} = this.props;
 
 		const {
-      leftWidth,
       histHeight,
 	    leftPlotWidth,
 	    barData,
@@ -276,14 +267,13 @@ export default class Quincunx extends Component {
 
     const barScaley = scaleLinear()
       .domain([0, 1])
-      .range([height - margin.top - histHeight, margin.top * 3.5]);
-    console.log(barData)
+      .range([histHeight - margin.bottom, 0]);
     const binchart = this.createHist(bins, barData, barScalex, barScaley);
-    console.log(binchart);
+
 
 		return (
 	    <div className="flex">
-	      <svg width={leftWidth} height={height} ref="wrapper">
+	      <svg width={leftPlotWidth} height={height} ref="wrapper">
           <g className="plot-container"
                 ref="plotContainer">
                 {this.props.children}
@@ -313,7 +303,7 @@ export default class Quincunx extends Component {
                       x={barScalex(d.x)}
                       y={height - histHeight + barScaley(d.value)}
                       width={barScalex.bandwidth()}
-                      height={barScaley.range()[0]- barScaley(d.value)}
+                      height={histHeight - margin.bottom - barScaley(d.value)}
                     />
                   )
                   })
@@ -323,7 +313,7 @@ export default class Quincunx extends Component {
             <Axis
               which="x"
               scale={barScalex}
-              transform={{x: 0, y: height- margin.bottom/(1.5)}}
+              transform={{x: 0, y: height - margin.bottom}}
               label={true}
               />
             <g className="Bottom"
@@ -349,7 +339,7 @@ export default class Quincunx extends Component {
 	          <div className="relative">
 	            <QsimMenu
 	              height={height}
-	              width={width - leftPlotWidth - margin.left - margin.right}
+	              width={0.35 * width - margin.left - margin.right}
 	              margin={{top: margin.top, right: margin.right, bottom: margin.bottom, left: margin.left}}
 	              sims={numSims}
 	              changeSims={(value) => this.setState({numSims: Number(value)})}
