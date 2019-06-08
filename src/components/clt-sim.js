@@ -201,13 +201,8 @@ export default class CltSim extends Component {
             } else {
               stopFunc();
             }
-<<<<<<< HEAD
           })
           .remove();
-=======
-          });
-          //.remove();
->>>>>>> parent of cc282b4... deploy
 
       function translateAlong(path) {
         const l = path.getTotalLength();
